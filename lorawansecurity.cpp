@@ -3,15 +3,20 @@
 
 LorawanSecurity::LorawanSecurity()
 {
+
 }
 
-void LorawanSecurity::testLib()
+Lorawan_result LorawanSecurity::setUpTestParams()
 {
-    std::cout <<"Test shared library"<<std::endl;
-    insideFunction();
+    return Lorawan_result::Success;
 }
 
-void LorawanSecurity::insideFunction()
+Lorawan_result LorawanSecurity::startTestEnv()
 {
-    std::cout <<"inside function private"<<std::endl;
+    return Lorawan_result::Success;
+}
+
+Lorawan_result LorawanSecurity::launchTest()
+{
+    return Lorawan_result::Success;
 }
