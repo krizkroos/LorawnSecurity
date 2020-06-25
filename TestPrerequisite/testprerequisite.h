@@ -11,10 +11,11 @@ protected:
     std::string name;
 public:
     virtual Lorawan_result start() =0;
-    virtual Lorawan_result stop() = 0;
+    virtual Lorawan_result stop() = 0;  
     virtual ~TestPrerequisite() =0;
-    void verbose();
 
+    Lorawan_result isValid();
+    void verbose();
     std::string getName() const;
     void setName(const std::string &value);
 };

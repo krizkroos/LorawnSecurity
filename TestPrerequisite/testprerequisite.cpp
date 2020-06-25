@@ -10,6 +10,18 @@ void TestPrerequisite::setName(const std::string &value)
     name = value;
 }
 
+TestPrerequisite::~TestPrerequisite()
+{
+
+}
+
+Lorawan_result TestPrerequisite::isValid()
+{
+
+    return Lorawan_result::Success;
+
+}
+
 void TestPrerequisite::verbose()
 {
 

@@ -1,5 +1,6 @@
 #include "mitmattack.h"
 
+#include <iostream>
 
 MiTMAttack::MiTMAttack()
 {
@@ -8,10 +9,11 @@ MiTMAttack::MiTMAttack()
 
 Lorawan_result MiTMAttack::start()
 {
-     return Lorawan_result::Success;
+    std::cout << "start MiTM prerequisite" << std::endl;
+    return Lorawan_result::Success;
 }
 
-Lorawan_result TestPrerequisite::stop()
+Lorawan_result MiTMAttack::stop()
 {
     return Lorawan_result::Success;
 }

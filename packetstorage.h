@@ -1,16 +1,18 @@
 #ifndef PACKETSTORAGE_H
 #define PACKETSTORAGE_H
 
-#include "joinrequestpacket.h"
-#include "joinacceptpacket.h"
-#include "datapacket.h"
+#include "Packet/joinrequestpacket.h"
+#include "Packet/joinacceptpacket.h"
+#include "Packet/datapacket.h"
+
+#include <memory>
 
 class PacketStorage
 {
 private:
-    std::vector<JoinRequestPacket> request;
-    std::vector<JoinAcceptPacket> accept;
-    std::vector<DataPacket> macPayload;
+    std::vector<std::shared_ptr<JoinRequestPacket>> request;
+    std::vector<std::shared_ptr<JoinAcceptPacket>> accept;
+    std::vector<std::shared_ptr<DataPacket>> macPayload;
 public:
     PacketStorage();
 };

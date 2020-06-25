@@ -2,18 +2,29 @@
 #define LORAWANTEST_H
 
 #include "defineLorawan.h"
-#include "lorawandevice.h"
-#include "testprerequisite.h"
+#include "Device/lorawandevice.h"
+#include "TestPrerequisite/testprerequisite.h"
+
+#include <memory>
 
 class LorawanTest
 {
 protected:
-  LorawanDevice testDevice;
-  std::vector<TestPrerequisite> prerequisite;
+  std::shared_ptr<LorawanDevice> testDevice;
+  std::vector<std::shared_ptr<TestPrerequisite>> prerequisite;
+  std::string description;
 public:
-    virtual Lorawan_result launch();
-    virtual Lorawan_result stop();
-    virtual ~LorawanTest();
+    virtual Lorawan_result launch() =0;
+    virtual Lorawan_result stop() =0;
+    virtual ~LorawanTest()= 0;
+
+    Lorawan_result isValid();
+    void setTestDevice(std::shared_ptr<LorawanDevice> device);
+    std::shared_ptr<LorawanDevice> getTestDevice() const;
+    Lorawan_result addPrerequisite(std::shared_ptr<TestPrerequisite> p);
+    std::string getDescription() const;
+    void setDescription(const std::string &value);
+    std::vector<std::shared_ptr<TestPrerequisite>>& getPrerequisite();
 };
 
 #endif // LORAWANTEST_H

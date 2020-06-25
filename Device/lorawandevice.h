@@ -29,6 +29,7 @@ private:
     int frameCounter = 0;
 public:
     LorawanDevice();
+    Lorawan_result isValid();
     LorawanDevice(lorawanVersion ver);
 };
 

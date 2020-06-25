@@ -12,15 +12,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 TARGET = lorawan-security
 
 
-INCLUDEPATH += ./Packet \
-               ./Device \
-               ./Test \
-               ./TestPrerequisite
-DEPENDPATH += ./Packet \
-               ./Device \
-               ./Test \
-               ./TestPrerequisite
-
 INCLUDEPATH += /home/kriss/PROJECTS/SDK/libtins/include
 DEPENDPATH += /home/kriss/PROJECTS/SDK/libtins/include
 
@@ -32,6 +23,7 @@ SOURCES += \
     Device/lorawandevice.cpp \
     Device/lorawandevice1_0_2.cpp \
     Test/bruteforcing_mic.cpp \
+    Test/testparams.cpp \
     TestPrerequisite/mitmattack.cpp \
     TestPrerequisite/testprerequisite.cpp \
     Test/lorawantest.cpp \
@@ -40,6 +32,7 @@ SOURCES += \
 
 HEADERS += \
     Test/bruteforcing_mic.h \
+    Test/testparams.h \
     defineLorawan.h \
     LorawanSecurity_global.h \
     Packet/datapacket.h \
@@ -52,13 +45,12 @@ HEADERS += \
     TestPrerequisite/mitmattack.h \
     Test/lorawantest.h \
     lorawansecurity.h \
-
     packetstorage.h
 
 
 CURRENT_BUILD = default #default
 contains(CONFIG,desktop) {
-    CURRENT_BUILD = build-desktop
+    CURRENT_BUILD = build-arm
 }
 else:contains(CONFIG,rpi) {
     CURRENT_BUILD = build-arm
@@ -70,5 +62,7 @@ LIBS += $${LIB_SDK}/libtins/$${CURRENT_BUILD}/lib/ -ltins
 PRE_TARGETDEPS += $${LIB_SDK}/libtins/$${CURRENT_BUILD}/lib/libtins.a
 
 }
+
+QMAKE_CLEAN += *.a Makefile
 
 
