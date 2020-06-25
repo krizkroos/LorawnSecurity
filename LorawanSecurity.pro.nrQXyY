@@ -16,11 +16,7 @@ INCLUDEPATH += ./Packet \
                ./Device \
                ./Test \
                ./TestPrerequisite
-DEPENDPATH += ./Packet \
-               ./Device \
-               ./Test \
-               ./TestPrerequisite
-
+DEPENDPATH += ./Packet
 INCLUDEPATH += /home/kriss/PROJECTS/SDK/libtins/include
 DEPENDPATH += /home/kriss/PROJECTS/SDK/libtins/include
 
@@ -54,7 +50,7 @@ HEADERS += \
     packetstorage.h
 
 
-CURRENT_BUILD = default #default
+CURRENT_BUILD = build-desktop #default
 contains(CONFIG,desktop) {
     CURRENT_BUILD = build-desktop
 }
@@ -62,11 +58,5 @@ else:contains(CONFIG,rpi) {
     CURRENT_BUILD = build-arm
 }
 
-!contains(CURRENT_BUILD, default){
-
 LIBS += $${LIB_SDK}/libtins/$${CURRENT_BUILD}/lib/ -ltins
 PRE_TARGETDEPS += $${LIB_SDK}/libtins/$${CURRENT_BUILD}/lib/libtins.a
-
-}
-
-

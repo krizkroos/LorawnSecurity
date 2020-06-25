@@ -6,6 +6,17 @@ MiTMAttack::MiTMAttack()
 
 }
 
+Lorawan_result MiTMAttack::start()
+{
+     return Lorawan_result::Success;
+}
+
+Lorawan_result TestPrerequisite::stop()
+{
+    return Lorawan_result::Success;
+}
+
+
 Lorawan_result MiTMAttack::arpSpoofing()
 {
     return Lorawan_result::Success;

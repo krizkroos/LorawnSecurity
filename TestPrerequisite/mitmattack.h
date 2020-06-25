@@ -14,6 +14,8 @@ private:
 
 public:
     MiTMAttack();
+    virtual Lorawan_result start() override;
+    virtual Lorawan_result stop() override;
     Lorawan_result arpSpoofing();
     Lorawan_result dnsSpoofing();
     Lorawan_result sendPacket(LorawanPacket packet);

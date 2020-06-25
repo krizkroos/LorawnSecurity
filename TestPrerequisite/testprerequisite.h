@@ -7,15 +7,16 @@
 
 class TestPrerequisite
 {
-private:
+protected:
     std::string name;
 public:
-    TestPrerequisite();
-    Lorawan_result start();
-    Lorawan_result stop();
+    virtual Lorawan_result start() =0;
+    virtual Lorawan_result stop() = 0;
+    virtual ~TestPrerequisite() =0;
     void verbose();
 
-
+    std::string getName() const;
+    void setName(const std::string &value);
 };
 
 #endif // TESTPREREQUISITE_H
