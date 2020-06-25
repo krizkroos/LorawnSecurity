@@ -31,6 +31,7 @@ SOURCES += \
     Packet/lorawanpacket.cpp \
     Device/lorawandevice.cpp \
     Device/lorawandevice1_0_2.cpp \
+    Test/bruteforcing_mic.cpp \
     TestPrerequisite/mitmattack.cpp \
     TestPrerequisite/testprerequisite.cpp \
     Test/lorawantest.cpp \
@@ -38,6 +39,7 @@ SOURCES += \
     packetstorage.cpp
 
 HEADERS += \
+    Test/bruteforcing_mic.h \
     defineLorawan.h \
     LorawanSecurity_global.h \
     Packet/datapacket.h \

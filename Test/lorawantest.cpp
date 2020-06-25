@@ -1,10 +1,5 @@
 #include "lorawantest.h"
 
-LorawanTest::LorawanTest()
-{
-
-}
-
 Lorawan_result LorawanTest::launch()
 {
     return Lorawan_result::Success;

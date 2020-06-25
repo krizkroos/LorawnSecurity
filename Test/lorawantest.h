@@ -7,13 +7,13 @@
 
 class LorawanTest
 {
-private:
+protected:
   LorawanDevice testDevice;
   std::vector<TestPrerequisite> prerequisite;
 public:
-    LorawanTest();
-    Lorawan_result launch();
-    Lorawan_result stop();
+    virtual Lorawan_result launch();
+    virtual Lorawan_result stop();
+    virtual ~LorawanTest();
 };
 
 #endif // LORAWANTEST_H
