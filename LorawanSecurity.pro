@@ -11,9 +11,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 TARGET = lorawan-security
 
-
-INCLUDEPATH += /home/kriss/PROJECTS/SDK/libtins/include
-DEPENDPATH += /home/kriss/PROJECTS/SDK/libtins/include
+INCLUDEPATH += $${LIB_SDK}/libtins/include
+DEPENDPATH += $${LIB_SDK}/libtins/include
 
 SOURCES += \
     Packet/datapacket.cpp \
@@ -47,21 +46,37 @@ HEADERS += \
     lorawansecurity.h \
     packetstorage.h
 
-
 CURRENT_BUILD = default #default
 contains(CONFIG,desktop) {
-    CURRENT_BUILD = build-arm
+    CURRENT_BUILD = desktop
+    message(Building local linux library....)
+
 }
 else:contains(CONFIG,rpi) {
-    CURRENT_BUILD = build-arm
+    CURRENT_BUILD = arm
+    message(Building RPi ARM library....)
 }
 
 !contains(CURRENT_BUILD, default){
 
-LIBS += $${LIB_SDK}/libtins/$${CURRENT_BUILD}/lib/ -ltins
-PRE_TARGETDEPS += $${LIB_SDK}/libtins/$${CURRENT_BUILD}/lib/libtins.a
+    LIBTINS_DIR = $${LIB_SDK}/libtins/build-$${CURRENT_BUILD}
+
+   message($${LIBTINS_DIR})
+   LIBS += $${LIBTINS_DIR}/lib/ -ltins
+   LIBS += -lpcap
+   #PRE_TARGETDEPS += $${LIBTINS_DIR}/lib/libtins.a
+   LIBTINS_OBJ_DIR = $${LIBTINS_DIR}/$${TINS_DIR}
+
+   QMAKE_AR_CMD = ar rc $(TARGET) $(OBJECTS) $${LIBTINS_OBJ_DIR}/*.o \
+                                                  $${LIBTINS_OBJ_DIR}/detail/*.o \
+                                                     $${LIBTINS_OBJ_DIR}/dot11/*.o \
+                                                     $${LIBTINS_OBJ_DIR}/tcp_ip/*.o \
+                                                     $${LIBTINS_OBJ_DIR}/utils/*.o
+
+    #message($${QMAKE_AR_CMD})
 
 }
+else:message(Error choose build)
 
 QMAKE_CLEAN += *.a Makefile
 
