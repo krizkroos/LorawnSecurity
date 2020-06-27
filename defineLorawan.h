@@ -6,9 +6,14 @@
 enum class Lorawan_result
 {
     Success,
-    Error
+    Error,
+    WrongSniffingParameters
 };
+
+
+
 typedef unsigned char byte;
 typedef std::vector<byte> bytes;
 
 #endif // DEFINELORAWAN_H
+
