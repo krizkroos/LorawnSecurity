@@ -21,17 +21,23 @@ SOURCES += \
     Packet/lorawanpacket.cpp \
     Device/lorawandevice.cpp \
     Device/lorawandevice1_0_2.cpp \
+    Packet/packetcontroller.cpp \
     Test/bruteforcing_mic.cpp \
     Test/testparams.cpp \
     TestPrerequisite/mitmattack.cpp \
     TestPrerequisite/testprerequisite.cpp \
     Test/lorawantest.cpp \
+    Utils/common.cpp \
+    Utils/jsonparser.cpp \
     lorawansecurity.cpp \
     packetstorage.cpp
 
 HEADERS += \
+    Packet/packetcontroller.h \
     Test/bruteforcing_mic.h \
     Test/testparams.h \
+    Utils/common.h \
+    Utils/jsonparser.h \
     defineLorawan.h \
     LorawanSecurity_global.h \
     Packet/datapacket.h \
@@ -51,10 +57,25 @@ contains(CONFIG,desktop) {
     CURRENT_BUILD = desktop
     message(Building local linux library....)
 
+    #INCLUDEPATH += /usr/include/openssl #openssl version 1.1.1d
+    #DEPENDPATH += /usr/include/openssl
+
+    INCLUDEPATH += /home/kriss/PROJECTS/SDK/rapidjson/include
+    DEPENDPATH += /home/kriss/PROJECTS/SDK/rapidjson/include
+
+    #LIBS += /usr/lib/x86_64-linux-gnu/ -lssl -lcrypto
+
 }
 else:contains(CONFIG,rpi) {
     CURRENT_BUILD = arm
     message(Building RPi ARM library....)
+
+    #INCLUDEPATH += $${RPI_FS}/usr/include/openssl #openssl version 1.1.1d
+    #DEPENDPATH += $${RPI_FS}/usr/include/openssl
+    INCLUDEPATH += $${RPI_FS}/home/ttn/THESIS/rapidjson/include
+    DEPENDPATH += $${RPI_FS}/home/ttn/THESIS/rapidjson/include
+    QMAKE_LFLAGS += -Wl,-rpath,"$${RPI_FS}/usr/lib/arm-linux-gnueabihf/" #libpcap
+    #LIBS +=  -lssl -lcrypto
 }
 
 !contains(CURRENT_BUILD, default){
@@ -64,6 +85,7 @@ else:contains(CONFIG,rpi) {
    message($${LIBTINS_DIR})
    LIBS += $${LIBTINS_DIR}/lib/ -ltins
    LIBS += -lpcap
+
    #PRE_TARGETDEPS += $${LIBTINS_DIR}/lib/libtins.a
    LIBTINS_OBJ_DIR = $${LIBTINS_DIR}/$${TINS_DIR}
 
@@ -76,7 +98,7 @@ else:contains(CONFIG,rpi) {
     #message($${QMAKE_AR_CMD})
 
 }
-else:message(Error choose build)
+else:message(Error chosing build)
 
 QMAKE_CLEAN += *.a Makefile
 

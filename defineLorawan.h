@@ -7,7 +7,8 @@ enum class Lorawan_result
 {
     Success,
     Error,
-    WrongSniffingParameters
+    WrongSniffingParameters,
+    NoValueAvailable
 };
 
 

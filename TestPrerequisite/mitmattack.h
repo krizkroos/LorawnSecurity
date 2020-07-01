@@ -11,6 +11,7 @@ class MiTMAttack : public TestPrerequisite
 {
 private:
     static bool deserializePacket(const Tins::Packet &packet);
+
 public:
     MiTMAttack();
     virtual Lorawan_result start() override;
