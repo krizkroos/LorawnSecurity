@@ -6,7 +6,7 @@
 #include "Test/lorawantest.h"
 #include "Test/testparams.h"
 
-#include <memory>
+
 
 class LORAWANSECURITY_EXPORT LorawanSecurity
 {

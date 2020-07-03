@@ -57,25 +57,27 @@ contains(CONFIG,desktop) {
     CURRENT_BUILD = desktop
     message(Building local linux library....)
 
-    #INCLUDEPATH += /usr/include/openssl #openssl version 1.1.1d
-    #DEPENDPATH += /usr/include/openssl
-
+    INCLUDEPATH += /usr/local/ssl/include #openssl version 1.1.1d
+    DEPENDPATH += /usr/local/ssl/include
+    LIBS +=  /usr/local/ssl/lib/ -lssl -lcrypto
     INCLUDEPATH += /home/kriss/PROJECTS/SDK/rapidjson/include
     DEPENDPATH += /home/kriss/PROJECTS/SDK/rapidjson/include
 
-    #LIBS += /usr/lib/x86_64-linux-gnu/ -lssl -lcrypto
+
 
 }
 else:contains(CONFIG,rpi) {
     CURRENT_BUILD = arm
     message(Building RPi ARM library....)
 
-    #INCLUDEPATH += $${RPI_FS}/usr/include/openssl #openssl version 1.1.1d
-    #DEPENDPATH += $${RPI_FS}/usr/include/openssl
+    INCLUDEPATH += $${RPI_FS}/usr/local/ssl/include #openssl version 1.1.1d
+    DEPENDPATH += $${RPI_FS}/usr/local/ssl/include
+    LIBS += $${RPI_FS}/usr/local/ssl/lib/ -lssl -lcrypto
+
     INCLUDEPATH += $${RPI_FS}/home/ttn/THESIS/rapidjson/include
     DEPENDPATH += $${RPI_FS}/home/ttn/THESIS/rapidjson/include
     QMAKE_LFLAGS += -Wl,-rpath,"$${RPI_FS}/usr/lib/arm-linux-gnueabihf/" #libpcap
-    #LIBS +=  -lssl -lcrypto
+
 }
 
 !contains(CURRENT_BUILD, default){
@@ -86,7 +88,6 @@ else:contains(CONFIG,rpi) {
    LIBS += $${LIBTINS_DIR}/lib/ -ltins
    LIBS += -lpcap
 
-   #PRE_TARGETDEPS += $${LIBTINS_DIR}/lib/libtins.a
    LIBTINS_OBJ_DIR = $${LIBTINS_DIR}/$${TINS_DIR}
 
    QMAKE_AR_CMD = ar rc $(TARGET) $(OBJECTS) $${LIBTINS_OBJ_DIR}/*.o \
@@ -94,7 +95,13 @@ else:contains(CONFIG,rpi) {
                                                      $${LIBTINS_OBJ_DIR}/dot11/*.o \
                                                      $${LIBTINS_OBJ_DIR}/tcp_ip/*.o \
                                                      $${LIBTINS_OBJ_DIR}/utils/*.o
+   contains(CURRENT_BUILD, desktop){
 
+        QMAKE_AR_CMD += $${CRYPTO_OBJ_DIR}/*.o $${SSL_OBJ_DIR}/*.o
+   }
+   else:contains(CURRENT_BUILD, arm){
+        QMAKE_AR_CMD += $${RPI_FS}$${CRYPTO_OBJ_DIR}/*.o $${RPI_FS}$${SSL_OBJ_DIR}/*.o
+   }
     #message($${QMAKE_AR_CMD})
 
 }

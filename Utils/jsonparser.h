@@ -16,9 +16,10 @@ private:
 public:
     JsonParser();
     void parse(std::string json);
-    Lorawan_result getValue(std::string key, std::string &value);
-    Lorawan_result getValue(std::string key, int &value);
-
+    Lorawan_result getValue(std::vector<std::string> key, std::string &value);
+    Lorawan_result getValue(std::vector<std::string> key, int &value);
+    Lorawan_result getValueFromArrayWithKey(std::string root, std::string key, std::string &value);
+    Lorawan_result getValueFromArrayWithKey(std::string key, int &value);
 };
 
 #endif // JSONPARSER_H
