@@ -136,6 +136,41 @@ Lorawan_result Common::encodeBase64(bytes input, bytes &encoded)
     return rv;
 }
 
+Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &littleEndianValue)
+{
+    littleEndianValue = std::vector<byte>(bigEndianValue.size(), 0x00); //init
+
+    if(bigEndianValue.empty())
+        return Lorawan_result::InputSizeZero;
+
+    size_t refSize = bigEndianValue.size();
+
+    for(size_t index=0; index < refSize; index++)
+    {
+        int newPos = static_cast<int>(refSize -index-1);
+        littleEndianValue.at(static_cast<size_t>(newPos)) = bigEndianValue.at(index);
+    }
+
+    return Lorawan_result::Success;
+}
+
+Lorawan_result Common::convertToBigEndian(bytes littleEndianValue, bytes &bigEndianValue)
+{
+    if(littleEndianValue.empty())
+        return Lorawan_result::InputSizeZero;
+
+    size_t refSize = littleEndianValue.size();
+    bigEndianValue = std::vector<byte>(littleEndianValue.size(), 0x00); //init
+
+    for(size_t index=0; index < refSize; index++)
+    {
+        int newPos = static_cast<int>(refSize -index-1);
+        bigEndianValue.at(static_cast<size_t>(newPos)) = littleEndianValue.at(index);
+    }
+
+   return Lorawan_result::Success;
+}
+
 Lorawan_result Common::testDecodingEncoding()
 {
     bytes decoded;
@@ -168,10 +203,54 @@ Lorawan_result Common::testDecodingEncoding()
                 std::cout << "encoded bytes:     "<< Common::bytes2HexStr(myEncoded) <<std::endl;
             }
             else
+            {
                 std::cout << "string cannot encode" <<std::endl;
+                return Lorawan_result::ErrorTest;
+            }
         }
         else
+        {
             std::cout << "string cannot decode" <<std::endl;
+            return Lorawan_result::ErrorTest;
+        }
     }
+
+    return Lorawan_result::Success;
+}
+
+Lorawan_result Common::testBigAndLittleEndian()
+{
+
+    std::vector<bytes> testsEndian;
+
+    testsEndian.push_back(bytes({0xE6, 0x28, 0x01, 0x26}));
+    testsEndian.push_back(bytes({0xE6, 0x28, 0x01, 0x26, 0x11, 0x22, 0x12}));
+    testsEndian.push_back(bytes({0xE6, 0x28}));
+    Lorawan_result rv  = Lorawan_result::Success;
+    for(auto &value: testsEndian)
+    {
+        bytes bigEndian{};
+        bytes littleEndian = value;
+
+        std::cout << std::endl;
+        std::cout << "----------------" << std::endl;
+
+        rv = Common::convertToBigEndian(littleEndian, bigEndian);
+        if(rv == Lorawan_result::Success)
+        {
+            std::cout << "littleEnd Value:" << Common::bytes2HexStr(littleEndian) << std::endl;
+            std::cout << "bigEndian Value:" << Common::bytes2HexStr(bigEndian) << std::endl;
+
+            littleEndian.clear();
+            rv = Common::convertToLittleEndian(bigEndian, littleEndian);
+            if (rv == Lorawan_result::Success)
+            {
+                std::cout << "littleEnd Value:" << Common::bytes2HexStr(littleEndian) << std::endl;
+            }
+
+        }
+    }
+
+    return rv;
 
 }
