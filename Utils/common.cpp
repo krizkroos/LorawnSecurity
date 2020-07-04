@@ -5,9 +5,9 @@
 #include <memory>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
+#include <map>
 //OPENSSL
-#include <openssl/sha.h>
-#include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
@@ -69,15 +69,17 @@ Lorawan_result Common::decodeBase64(bytes input, bytes& decoded)
 {
 
     BIO *bio, *b64;
+    size_t decodeLen = 0;
     Lorawan_result rv = Lorawan_result::Success;
+
 
     if(input.size() == 0)
        return Lorawan_result::InputSizeZero;
 
     decoded.clear();
+    std::string tmp = Common::bytes2Str(input);
+    const char* b64message = tmp.c_str();
 
-    char* b64message = reinterpret_cast<char*>(&input.at(0));
-    size_t decodeLen = 0;
     decodeLen = calcDecodeLength(b64message);
     byte* buffer = reinterpret_cast<unsigned char*>(malloc(decodeLen +1));
     (buffer)[decodeLen] = '\0';
@@ -132,4 +134,44 @@ Lorawan_result Common::encodeBase64(bytes input, bytes &encoded)
         rv = Lorawan_result::ErrorEncodingBase64;
 
     return rv;
+}
+
+Lorawan_result Common::testDecodingEncoding()
+{
+    bytes decoded;
+    std::map<std::string, bytes> loraBase64 = {
+        {"AKbtAtB+1bNwgdYfAAujBAAJGFILVhM=", bytes({0x00,0xA6,0xED,0x02,0xD0,0x7E,0xD5,0xB3,0x70,0x81,0xD6,0x1F,0x00,0x0B,0xA3,0x04,0x00,0x09,0x18,0x52,0x0B,0x56,0x13})},
+        {"II9uo5ycgdFjz/RVwUO88Q+vnqghauvzU9kSal2wUwFu", bytes({0x20,0x8F,0x6E,0xA3,0x9C,0x9C,0x81,0xD1,0x63,0xCF,0xF4,0x55,0xC1,0x43,0xBC,0xF1,0x0F,0xAF,0x9E,0xA8,0x21,0x6A,0xEB,                       0xF3,0x53,0xD9,0x12,0x6A,0x5D,0xB0,0x53,0x01,0x6E})},
+        {"QOYoASYAAAABRMXmr1IxVcy+qw==", bytes({0x40,0xE6,0x28,0x01,0x26,0x00,0x00,0x00,0x01,0x44,0xC5,0xE6,0xAF,0x52,0x31,0x55,0xCC,0xBE,0xAB})},
+        {"QOYoASYAAQADmUq+6E3NTDa6Yg==", bytes({0x40,0xE6,0x28,0x01,0x26,0x00,0x01,0x00,0x03,0x99,0x4A,0xBE,0xE8,0x4D,0xCD,0x4C,0x36,0xBA,0x62})}
+                                                };
+    for(auto& value: loraBase64)
+    {
+        std::cout << std::endl;
+        std::cout << "-------------------"<< std::endl;
+        std::string data = value.first;
+        bytes refDecoded = value.second;
+        bytes encoded = Common::str2Bytes(data);
+        bytes calcDecoded;
+
+        if(Common::decodeBase64(encoded, calcDecoded) == Lorawan_result::Success)
+        {
+            std::cout << "string: " << data <<std::endl;
+            std::cout << "reference decoded: "<< Common::bytes2HexStr(refDecoded) <<std::endl;
+            std::cout << "decoded bytes:     "<< Common::bytes2HexStr(calcDecoded) <<std::endl;
+            bytes myEncoded;
+
+
+            if(Common::encodeBase64(calcDecoded,myEncoded) == Lorawan_result::Success)
+            {
+                std::cout << "reference encoded: "<< Common::bytes2HexStr(encoded) <<std::endl;
+                std::cout << "encoded bytes:     "<< Common::bytes2HexStr(myEncoded) <<std::endl;
+            }
+            else
+                std::cout << "string cannot encode" <<std::endl;
+        }
+        else
+            std::cout << "string cannot decode" <<std::endl;
+    }
+
 }

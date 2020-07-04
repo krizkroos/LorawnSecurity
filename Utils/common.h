@@ -13,6 +13,7 @@ public:
     static bytes str2Bytes(std::string input);
     static Lorawan_result decodeBase64(bytes input, bytes &decoded);
     static Lorawan_result encodeBase64(bytes input, bytes &encoded);
+    static Lorawan_result testDecodingEncoding();
 private:
     static size_t calcDecodeLength(const char *b64input);
 };
