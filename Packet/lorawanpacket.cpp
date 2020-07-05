@@ -1,5 +1,10 @@
 #include "lorawanpacket.h"
 
+MsgType LorawanPacket::getType() const
+{
+    return _type;
+}
+
 LorawanPacket::LorawanPacket()
 {
 
@@ -10,10 +15,17 @@ LorawanPacket::LorawanPacket(MsgType type)
     _type = type;
 }
 
-LorawanPacket LorawanPacket::deserializePacket(bytes data)
+bytes LorawanPacket::getRawData() const
 {
-    return LorawanPacket();
+    return rawData;
 }
+
+void LorawanPacket::setRawData(const bytes &value)
+{
+    rawData = value;
+}
+
+
 
 bytes LorawanPacket::serializePacket()
 {

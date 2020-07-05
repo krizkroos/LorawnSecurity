@@ -14,12 +14,15 @@ class LorawanPacket
 {
 private:
     MsgType _type;
+    bytes rawData;
 
 public:
     LorawanPacket();
     LorawanPacket(MsgType type);
-    LorawanPacket deserializePacket(bytes data);
     bytes serializePacket();
+    bytes getRawData() const;
+    void setRawData(const bytes &value);
+    MsgType getType() const;
 };
 
 #endif // LORAWANPACKET_H

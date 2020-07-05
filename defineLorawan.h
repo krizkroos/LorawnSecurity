@@ -15,7 +15,8 @@ enum class Lorawan_result
     ErrorOpenSSL,
     ErrorDecodingBase64,
     ErrorEncodingBase64,
-    InputSizeZero
+    InputSizeZero,
+    ErrorAddPacket
 };
 
 
@@ -24,5 +25,6 @@ typedef unsigned char byte;
 typedef std::vector<byte> bytes;
 typedef std::vector<std::string> jsonKeys;
 
+#define UNUSED(x) (void)(x)
 #endif // DEFINELORAWAN_H
 

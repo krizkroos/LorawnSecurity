@@ -147,5 +147,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, int &value)
 
 Lorawan_result getValueFromArrayType(std::string key, int &value)
 {
+    UNUSED(key);
+    UNUSED(value);
     return Lorawan_result::Success;
 }
