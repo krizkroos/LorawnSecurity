@@ -8,9 +8,13 @@ class DataPacket : public LorawanPacket
 private:
     bytes devAddr;
     byte fCtrl;
-    bytes data;
+    bytes frameCounter; //2 bytes
+    bytes fOpts;
+    byte fPort;
+    bytes frmPayload;
 public:
     DataPacket();
+    Lorawan_result deserialize();
 };
 
 #endif // DATAPACKET_H

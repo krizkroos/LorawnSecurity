@@ -29,11 +29,10 @@ Lorawan_result MiTMAttack::start()
     std::cout << "start MiTM prerequisite" << std::endl;
     Lorawan_result result = Lorawan_result::Success;
 
-    std::cout << "WantedPacket = " << std::to_string(MiTMAttack::_wantedPacket) << std::endl;
-    std::cout << "SniffedPacket = " << std::to_string(MiTMAttack::_sniffedPacket) << std::endl;
-    result = sniffing("wlan0", "udp dst port 1700");
-    std::cout << "after WantedPacket = " << std::to_string(MiTMAttack::_wantedPacket) << std::endl;
-    std::cout << "after SniffedPacket = " << std::to_string(MiTMAttack::_sniffedPacket) << std::endl;
+    //std::cout << "WantedPacket = " << std::to_string(MiTMAttack::_wantedPacket) << std::endl;
+    //std::cout << "SniffedPacket = " << std::to_string(MiTMAttack::_sniffedPacket) << std::endl;
+    result = sniffing("wlan0", "udp port 1700");
+
     return result;
 
 }
@@ -63,7 +62,6 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
             Tins::PDU* udpData = udp.inner_pdu();
             bytes rawdata = udpData->serialize();
             std::cout << "size of raw data: " << std::to_string(rawdata.size())<< std::endl;
-            std::cout << "raw data ----" << Common::bytes2HexStr(rawdata) << std::endl;
             std::cout <<" check if it is valid packet " << std::endl;
 
             if(rawdata.at(3) == 0x00) //TODO why omit first three bytes and why 0x00 indicates wanted packet
@@ -82,7 +80,8 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
 
                 if(rv == Lorawan_result::Success)
                 {
-                    std::cout << "lorawan data ----" << lorawanData  << std::endl;
+                    std::cout << "----------lorawan data -------------" << std::endl;
+                    std::cout << lorawanData  << std::endl;
                     bytes b64Data = Common::str2Bytes(lorawanData);
                     bytes rawPacket{};
                     if(Common::decodeBase64(b64Data,rawPacket) == Lorawan_result::Success)
@@ -123,6 +122,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                 std::cout << "Received Data packet" << std::endl;
                                 std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
                                 dataPacket->setRawData(rawPacket);
+                                dataPacket->deserialize();
                                 storage->addPacket(dataPacket);
 
                                 if(_whichPacketWanted == SniffingPackets::Data)
@@ -132,7 +132,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                             }
                             default:
                             {
-                                std::cout << "unknown packet type" << rawPacket.front()  << std::endl;
+                                std::cout << "unknown packet type " << rawPacket.front()  << std::endl;
                                 break;
                             }
                         }
@@ -150,6 +150,9 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
         }
 
     }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
 
     return MiTMAttack::checkSniffedNumber();
 }

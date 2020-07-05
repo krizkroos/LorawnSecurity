@@ -12,13 +12,15 @@ enum class MsgType
 
 class LorawanPacket
 {
-private:
+protected:
     MsgType _type;
     bytes rawData;
+    bytes MIC;
 
 public:
     LorawanPacket();
     LorawanPacket(MsgType type);
+
     bytes serializePacket();
     bytes getRawData() const;
     void setRawData(const bytes &value);
