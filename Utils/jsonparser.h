@@ -15,11 +15,14 @@ private:
     Document map;
 public:
     JsonParser();
-    void parse(std::string json);
+    std::string getJson();
+    Lorawan_result parse(std::string json);
     Lorawan_result getValue(std::vector<std::string> key, std::string &value);
     Lorawan_result getValue(std::vector<std::string> key, int &value);
     Lorawan_result getValueFromArrayWithKey(std::string root, std::string key, std::string &value);
     Lorawan_result getValueFromArrayWithKey(std::string key, int &value);
+    Lorawan_result changeValue(std::string key, int value);
+    Lorawan_result changeValue(std::string key, std::string value);
 };
 
 #endif // JSONPARSER_H

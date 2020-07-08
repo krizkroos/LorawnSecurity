@@ -17,7 +17,8 @@ enum class Lorawan_result
     ErrorEncodingBase64,
     ErrorConvert2BigEndian,
     InputSizeZero,
-    ErrorAddPacket
+    ErrorAddPacket,
+    ErrorParsing
 };
 
 

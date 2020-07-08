@@ -1,15 +1,85 @@
 #include "jsonparser.h"
 #include <iostream>
-
+using namespace rapidjson;
 JsonParser::JsonParser()
 {
 
 }
+
+std::string JsonParser::getJson()
+{
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+
+    map.Accept(writer);
+
+    return std::string(buffer.GetString());
+}
 //jParser.parse("{\"Node\":\"9478149a08f9\",\"Address\":\"172.17.0.2\",\"ServiceID\":\"HSS\",\"ServiceName\":\"HSS\",\"ServiceTags\":[],\"ServiceAddress\":\"\",\"ServicePort\":6666,\"ServiceEnableTagOverride\":false,\"CreateIndex\":2855,\"ModifyIndex\":2855}");
 
-void JsonParser::parse(std::string json)
+Lorawan_result JsonParser::parse(std::string json)
 {
-    map.Parse(json.c_str());
+    if(map.Parse(json.c_str()).HasParseError())
+        return Lorawan_result::ErrorParsing;
+
+    return Lorawan_result::Success;
+}
+
+Lorawan_result JsonParser::changeValue(std::string key, std::string value)
+{
+    if(key.empty())
+        return Lorawan_result::InputSizeZero;
+
+    if(map.IsObject())
+    {
+        if(!map.HasMember(key.c_str()))
+        {
+            std::cout << "No member with key: "<<key << std::endl;
+            return Lorawan_result::NoValueAvailable;
+        }
+        if(!map[key.c_str()].IsString())
+            return Lorawan_result::NoValueAvailable;
+
+        map[key.c_str()].SetString(value.c_str(), static_cast<SizeType>(value.size()));
+    }
+    else
+    {
+        std::cout << "Not an object" << std::endl;
+        return Lorawan_result::Error;
+    }
+
+    return Lorawan_result::Success;
+
+}
+
+Lorawan_result JsonParser::changeValue(std::string key, int value)
+{
+    if(key.empty())
+        return Lorawan_result::InputSizeZero;
+
+    if(map.IsObject())
+    {
+        if(!map.HasMember(key.c_str()))
+        {
+            std::cout << "No member with key: "<<key << std::endl;
+            return Lorawan_result::NoValueAvailable;
+        }
+        if(!map[key.c_str()].IsInt())
+        {
+            std::cout << "not a integer value" << std::endl;
+            return Lorawan_result::NoValueAvailable;
+        }
+
+        map[key.c_str()].SetInt(value);
+    }
+
+    else
+    {
+        std::cout << "Not an object" << std::endl;
+        return Lorawan_result::Error;
+    }
+
+    return Lorawan_result::Success;
 }
 
 Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &value)
