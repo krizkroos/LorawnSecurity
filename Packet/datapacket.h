@@ -14,6 +14,7 @@ private:
     bytes frmPayload;
 public:
     DataPacket();
+    DataPacket(const std::shared_ptr<DataPacket> packet);
     Lorawan_result deserialize();
 };
 

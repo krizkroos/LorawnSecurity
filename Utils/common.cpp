@@ -171,6 +171,29 @@ Lorawan_result Common::convertToBigEndian(bytes littleEndianValue, bytes &bigEnd
    return Lorawan_result::Success;
 }
 
+Lorawan_result Common::convertIPAddress(const bytes address, bytes &convertedAddr)
+{
+
+    //UNFINISHED
+    std::pair<byte,byte> value;
+    size_t refSize =address.size() ;
+    if(address.empty())
+        return Lorawan_result::InputSizeZero;
+
+    if(refSize % 2 !=0)
+    {
+        return Lorawan_result::Error;
+    }
+    convertedAddr.clear();
+
+    for(size_t index=0; index< refSize; index+=2)
+    {
+        value = std::make_pair(address.at(index), address.at(index +2));
+        int newPos = static_cast<int>(refSize - index -1);
+
+    }
+}
+
 Lorawan_result Common::testDecodingEncoding()
 {
     bytes decoded;

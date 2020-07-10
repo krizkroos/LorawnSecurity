@@ -2,6 +2,7 @@
 #define JOINREQUESTPACKET_H
 
 #include "lorawanpacket.h"
+#include "tins/tins.h"
 
 class JoinRequestPacket : public LorawanPacket
 {
@@ -10,8 +11,29 @@ private:
     bytes devEUI;
     bytes devNonce;
 
+
+    bytes eui64;
+    Tins::IP destinationAddress;
+    uint16_t dstPort;
+    uint16_t srcPort;
+
 public:
     JoinRequestPacket();
+    Lorawan_result deserialize();
+
+
+    bytes getEui64() const;
+    void setEui64(const bytes &value);
+    Tins::IP getDestinationAddress() const;
+    void setDestinationAddress(std::string, bool convertToBigEndian = true);
+    uint16_t getDstPort() const;
+    void setDstPort(const uint16_t &value);
+    uint16_t getSrcPort() const;
+    void setSrcPort(const uint16_t &value);
+    bytes getAppEUI() const;
+    void setAppEUI(const bytes &value);
+    bytes getDevEUI() const;
+    void setDevEUI(const bytes &value);
 };
 
 #endif // JOINREQUESTPACKET_H

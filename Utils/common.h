@@ -18,6 +18,7 @@ public:
 
     static Lorawan_result testDecodingEncoding();
     static Lorawan_result testBigAndLittleEndian();
+    static Lorawan_result convertIPAddress(const bytes address, bytes &convertedAddr);
 private:
     static size_t calcDecodeLength(const char *b64input);
 };

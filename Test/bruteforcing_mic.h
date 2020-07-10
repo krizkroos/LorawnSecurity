@@ -3,6 +3,7 @@
 
 #include "lorawantest.h"
 
+
 class BruteforcingMIC : public LorawanTest
 {
 public:
@@ -12,6 +13,8 @@ public:
 
 private:
     Lorawan_result printPackets();
+    Lorawan_result send(bytes magicFour, bytes eui64, std::string json);
+    Lorawan_result createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend);
 };
 
 #endif // BRUTEFORCINGMIC_H

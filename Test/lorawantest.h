@@ -3,6 +3,7 @@
 
 #include "defineLorawan.h"
 #include "Device/lorawandevice.h"
+#include "Packet/uplinkcontroller.h"
 #include "TestPrerequisite/testprerequisite.h"
 
 #include <memory>
@@ -13,10 +14,13 @@ protected:
   std::shared_ptr<LorawanDevice> testDevice;
   std::vector<std::shared_ptr<TestPrerequisite>> prerequisite;
   std::string description;
+  UplinkController uplink;
+
 public:
     virtual Lorawan_result launch() =0;
     virtual Lorawan_result stop() =0;
     virtual ~LorawanTest()= 0;
+
 
     Lorawan_result isValid();
     void setTestDevice(std::shared_ptr<LorawanDevice> device);

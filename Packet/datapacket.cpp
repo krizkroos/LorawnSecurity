@@ -8,6 +8,17 @@ DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
 
 }
 
+DataPacket::DataPacket(const std::shared_ptr<DataPacket> packet) : LorawanPacket(packet)
+{
+    devAddr = packet->devAddr;
+    fCtrl = packet->fCtrl;
+    frameCounter = packet->frameCounter;
+    fOpts = packet->fOpts;
+    fPort = packet->fPort;
+    frmPayload = packet->frmPayload;
+
+}
+
 Lorawan_result DataPacket::deserialize()
 {
     unsigned char unconfirmedDataUp = 0x40;
@@ -19,13 +30,13 @@ Lorawan_result DataPacket::deserialize()
     UNUSED(confirmedDataUp);
     UNUSED(confirmedDataDown);
 
-    if(rawData.empty())
+    if(rawPacket.empty())
         return Lorawan_result::NoValueAvailable;
 
-    if(!(rawData.front() & unconfirmedDataUp)) //Unconfirmed Data Up
+    if(!(rawPacket.front() & unconfirmedDataUp)) //Unconfirmed Data Up
         return Lorawan_result::NotSupportedFeature;
 
-    bytes::iterator nextByte = rawData.begin()+1;
+    bytes::iterator nextByte = rawPacket.begin()+1;
 
     bytes littleEndianDevAddr = bytes(nextByte, nextByte+4);
 
@@ -63,7 +74,7 @@ Lorawan_result DataPacket::deserialize()
     {
         //size_t i =0;
         //std::cout << "last byte for frmPayload: " << Common::bytes2HexStr(bytes({*(rawData.end() -4)})) << std::endl;
-        while(nextByte != rawData.end() - 4)
+        while(nextByte != rawPacket.end() - 4)
         {
             //std::cout << "next frame payload byte " + std::to_string(i) << std::endl;
             frmPayload.emplace_back(*nextByte);
@@ -74,7 +85,7 @@ Lorawan_result DataPacket::deserialize()
     else
         return Lorawan_result::NoValueAvailable;
 
-    while(nextByte != rawData.end())
+    while(nextByte != rawPacket.end())
     {
         MIC.emplace_back(*nextByte);
         nextByte++;

@@ -52,7 +52,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
     {
         const Tins::IP &ip = packet.pdu()->rfind_pdu<Tins::IP>();
         std::cout<<"---------- IP protocol -------------" << std::endl;
-        std::cout << ip.dst_addr() << " --> " << ip.src_addr() << std::endl;
+        std::cout << ip.src_addr() << "  -->  " << ip.dst_addr() << std::endl;
 
         if(ip.inner_pdu()->find_pdu<Tins::UDP>())
         {
@@ -60,18 +60,22 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
             const Tins::UDP &udp = ip.inner_pdu()->rfind_pdu<Tins::UDP>();
             std::cout << "src port: " << udp.sport() << "--> dst port: " << udp.dport() << std::endl;
             Tins::PDU* udpData = udp.inner_pdu();
+
             bytes rawdata = udpData->serialize();
+
             std::cout << "size of raw data: " << std::to_string(rawdata.size())<< std::endl;
-            std::cout <<" check if it is valid packet " << std::endl;
+            std::cout << Common::bytes2HexStr(rawdata) << std::endl;
+            std::cout <<" ------------------check if it is valid packet " << std::endl;
 
             if(rawdata.at(3) == 0x00) //TODO why omit first three bytes and why 0x00 indicates wanted packet
             {
                 bytes rawJson = bytes(rawdata.begin() +12, rawdata.end()); // omit EUI
                 std::cout << "received wanted packet " << std::endl;
 
-                std::cout << "raw Json: " << Common::bytes2HexStr(rawJson) << std::endl;
+                //std::cout << "raw Json: " << Common::bytes2HexStr(rawJson) << std::endl;
 
                 std::string jsonString = Common::bytes2Str(rawJson);
+                std::cout << "Json: " << jsonString << std::endl;
                 JsonParser jParser;
                 std::string lorawanData{};
                 jParser.parse(jsonString);
@@ -83,6 +87,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                     std::cout << "----------lorawan data -------------" << std::endl;
                     std::cout << lorawanData  << std::endl;
                     bytes b64Data = Common::str2Bytes(lorawanData);
+                    std::cout << Common::bytes2HexStr(b64Data) << std::endl;
                     bytes rawPacket{};
                     if(Common::decodeBase64(b64Data,rawPacket) == Lorawan_result::Success)
                     {
@@ -95,6 +100,17 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                 std::cout << "Received JoinRequest packet" << std::endl;
                                 std::shared_ptr<JoinRequestPacket> reqPacket = std::make_shared<JoinRequestPacket>();
                                 reqPacket->setRawData(rawPacket);
+                                reqPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
+                                reqPacket->setEui64(bytes(rawdata.begin() +4, rawdata.begin() + 12));
+                                reqPacket->setJsonString(jsonString);
+                                reqPacket->setDestinationAddress(ip.dst_addr().to_string(), (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
+                                reqPacket->setDstPort(udp.dport());
+                                reqPacket->setSrcPort(udp.sport());
+
+
+                                if(reqPacket->deserialize() != Lorawan_result::Success)
+                                    std::cout << "Error in deserialization of request packet" << std::endl;
+
                                 storage->addPacket(reqPacket);
 
                                 if(_whichPacketWanted == SniffingPackets::Request)
@@ -107,6 +123,8 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                 std::cout << "Received JoinAccept packet" << std::endl;
                                 std::shared_ptr<JoinAcceptPacket> accPacket = std::make_shared<JoinAcceptPacket>();
                                 accPacket->setRawData(rawPacket);
+                                accPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
+                                accPacket->setJsonString(jsonString);
                                 storage->addPacket(accPacket);
 
                                 if(_whichPacketWanted == SniffingPackets::Accept)
@@ -122,7 +140,9 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                 std::cout << "Received Data packet" << std::endl;
                                 std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
                                 dataPacket->setRawData(rawPacket);
+                                dataPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
                                 dataPacket->deserialize();
+                                dataPacket->setJsonString(jsonString);
                                 storage->addPacket(dataPacket);
 
                                 if(_whichPacketWanted == SniffingPackets::Data)

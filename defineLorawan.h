@@ -18,10 +18,9 @@ enum class Lorawan_result
     ErrorConvert2BigEndian,
     InputSizeZero,
     ErrorAddPacket,
-    ErrorParsing
+    ErrorParsing,
+    ErrorCreatingPacket
 };
-
-
 
 typedef unsigned char byte;
 typedef std::vector<byte> bytes;

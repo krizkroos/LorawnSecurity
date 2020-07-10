@@ -14,17 +14,25 @@ class LorawanPacket
 {
 protected:
     MsgType _type;
-    bytes rawData;
+    bytes rawPacket;
+    std::string jsonString;
     bytes MIC;
+    bytes magicFour;
 
 public:
     LorawanPacket();
     LorawanPacket(MsgType type);
+    LorawanPacket(const std::shared_ptr<LorawanPacket> packet);
 
     bytes serializePacket();
     bytes getRawData() const;
     void setRawData(const bytes &value);
     MsgType getType() const;
+
+    std::string getJsonString() const;
+    void setJsonString(const std::string &value);
+    void setMagicFour(const bytes &value);
+    bytes getMagicFour() const;
 };
 
 #endif // LORAWANPACKET_H

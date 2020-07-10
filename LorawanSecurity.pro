@@ -22,6 +22,7 @@ SOURCES += \
     Device/lorawandevice.cpp \
     Device/lorawandevice1_0_2.cpp \
     Packet/packetcontroller.cpp \
+    Packet/uplinkcontroller.cpp \
     Test/bruteforcing_mic.cpp \
     Test/testparams.cpp \
     TestPrerequisite/mitmattack.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
 
 HEADERS += \
     Packet/packetcontroller.h \
+    Packet/uplinkcontroller.h \
     Test/bruteforcing_mic.h \
     Test/testparams.h \
     Utils/common.h \
