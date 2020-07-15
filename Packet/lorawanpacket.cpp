@@ -25,6 +25,16 @@ bytes LorawanPacket::getMagicFour() const
     return magicFour;
 }
 
+bytes LorawanPacket::getMIC() const
+{
+    return MIC;
+}
+
+void LorawanPacket::setMIC(const bytes &value)
+{
+    MIC = value;
+}
+
 LorawanPacket::LorawanPacket()
 {
     

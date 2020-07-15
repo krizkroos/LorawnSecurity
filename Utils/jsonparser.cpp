@@ -38,6 +38,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
     if(key.size() > 2 || key.size() < 1)
         return Lorawan_result::NotSupportedFeature;
     std::cout << "value to input: " << value << std::endl;
+    Document::AllocatorType& allocator = map.GetAllocator();
     std::string currentKey = key.at(0);
     if(map.IsObject()) // in json string = {"key" : "value" }
     {
@@ -58,7 +59,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
                return Lorawan_result::NoValueAvailable;
             }
 
-            map[currentKey.c_str()].SetString(value.c_str(), static_cast<SizeType>(value.size()));
+            map[currentKey.c_str()].SetString(value.c_str(),allocator);
            return Lorawan_result::Success;
 
         }
@@ -84,7 +85,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
         {
             if(foundValue)
                 break;
-            Document::AllocatorType& allocator = map.GetAllocator();
+
             Value& obj = *itr;
             for(Value::MemberIterator it = obj.MemberBegin(); it != obj.MemberEnd(); ++it)
             {
@@ -113,6 +114,7 @@ Lorawan_result JsonParser::changeValueInArray(std::string root, std::string key,
 {
 
     std::cout << "value to change in array: " << value << std::endl;
+    Document::AllocatorType& allocator = map.GetAllocator();
     if(!map[root.c_str()].IsArray())
     {
         std::cout << "not an array type" <<std::endl;
@@ -126,7 +128,7 @@ Lorawan_result JsonParser::changeValueInArray(std::string root, std::string key,
             break;
 
         Value& obj = *itr;
-        Document::AllocatorType& allocator = map.GetAllocator();
+
         for(Value::MemberIterator it = obj.MemberBegin(); it != obj.MemberEnd(); ++it)
         {
             //std::cout << "next key " <<  it->name.GetString()  << " " << key << std::endl;
@@ -291,5 +293,5 @@ Lorawan_result getValueFromArrayType(std::string key, int &value)
 {
     UNUSED(key);
     UNUSED(value);
-    return Lorawan_result::Success;
+    return Lorawan_result::NotSupportedFeature;
 }

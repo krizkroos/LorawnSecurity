@@ -9,6 +9,7 @@ enum class Lorawan_result
     Success,
     Error,
     ErrorTest,
+    ErrorTestSetUp,
     WrongSniffingParameters,
     NoValueAvailable,
     NotSupportedFeature,
@@ -16,9 +17,12 @@ enum class Lorawan_result
     ErrorDecodingBase64,
     ErrorEncodingBase64,
     ErrorConvert2BigEndian,
+    ErrorConvert2LittleEndian,
     InputSizeZero,
     ErrorAddPacket,
     ErrorParsing,
+    ErrorSerialize,
+    ErrorCalcMIC,
     ErrorCreatingPacket
 };
 

@@ -16,6 +16,9 @@ public:
     DataPacket();
     DataPacket(const std::shared_ptr<DataPacket> packet);
     Lorawan_result deserialize();
+    Lorawan_result serialialize();
+    bytes getFrameCounter() const;
+    void setFrameCounter(const bytes &value);
 };
 
 #endif // DATAPACKET_H

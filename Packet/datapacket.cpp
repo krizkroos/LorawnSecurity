@@ -3,6 +3,16 @@
 
 #include <iostream>
 
+bytes DataPacket::getFrameCounter() const
+{
+    return frameCounter;
+}
+
+void DataPacket::setFrameCounter(const bytes &value)
+{
+    frameCounter = value;
+}
+
 DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
 {
 
@@ -72,14 +82,11 @@ Lorawan_result DataPacket::deserialize()
     nextByte ++;
     if(fPort)
     {
-        //size_t i =0;
-        //std::cout << "last byte for frmPayload: " << Common::bytes2HexStr(bytes({*(rawData.end() -4)})) << std::endl;
         while(nextByte != rawPacket.end() - 4)
         {
-            //std::cout << "next frame payload byte " + std::to_string(i) << std::endl;
             frmPayload.emplace_back(*nextByte);
             nextByte++;
-            //i++;
+
         }
     }
     else
@@ -95,3 +102,46 @@ Lorawan_result DataPacket::deserialize()
     return Lorawan_result::Success;
 
 }
+
+Lorawan_result DataPacket::serialialize()
+{
+    byte mhdr{0x40};
+    if(rawPacket.empty())
+    {
+        std::cout << "raw packet is empty, default mhdr" << std::endl;
+    }
+    else
+        mhdr = rawPacket.front();
+
+    rawPacket.clear();
+
+    rawPacket.emplace_back(mhdr);
+
+    bytes littleEndianDevAddr{};
+    if(Common::convertToLittleEndian(devAddr,littleEndianDevAddr) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+
+
+    rawPacket.insert(rawPacket.begin()+1, littleEndianDevAddr.begin(), littleEndianDevAddr.end());
+    rawPacket.emplace_back(fCtrl);
+
+    bytes littleEndianFCnt{};
+    if(Common::convertToLittleEndian(frameCounter,littleEndianFCnt) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+    littleEndianFCnt.resize(2,0x00);
+
+    rawPacket.insert(rawPacket.end(), littleEndianFCnt.begin(),littleEndianFCnt.end());
+
+    rawPacket.insert(rawPacket.end(), fOpts.begin(),fOpts.end());
+    rawPacket.emplace_back(fPort);
+    rawPacket.insert(rawPacket.end(), frmPayload.begin(),frmPayload.end());
+    rawPacket.insert(rawPacket.end(), MIC.begin(), MIC.end());
+
+    return Lorawan_result::Success;
+}
+
+

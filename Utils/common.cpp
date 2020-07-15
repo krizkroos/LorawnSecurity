@@ -11,6 +11,7 @@
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
+#include <openssl/cmac.h>
 
 Common::Common()
 {
@@ -50,6 +51,51 @@ bytes Common::str2Bytes(std::string input)
         return bytes();
 
     return bytes(input.begin(),input.end());
+}
+
+unsigned long int Common::bytes2ULong(const bytes input, bool bigEndian)
+{
+    unsigned long int output =0;
+
+    if(bigEndian)
+    {
+        for(size_t i=0; i < input.size() ; i++)
+        {
+            output =  (output << 8) + size_t(input.at(i));
+        }
+    }
+
+    return output;
+}
+
+bytes Common::ulong2Bytes(unsigned long int value)
+{
+    bytes v;
+
+    if(value == 0)
+    {
+        v.emplace_back(0x00);
+        return v;
+    }
+
+    for(int i=7; i >=0; i--)
+    {
+        v.emplace_back(static_cast<int>(value >> (i*8) & 0xFF));
+    }
+    //delete uncessery zeros
+    size_t i =0;
+    for(i =0 ; i <v.size(); i++)
+    {
+        byte tmp = v.at(i);
+        if(tmp != 0x00)
+            break;
+    }
+    if(i > 0)
+    {
+        v.erase(v.begin(), v.begin()+static_cast<int>(i));
+    }
+
+    return v;
 }
 
 //https://gist.github.com/barrysteyn/7308212
@@ -134,6 +180,38 @@ Lorawan_result Common::encodeBase64(bytes input, bytes &encoded)
         rv = Lorawan_result::ErrorEncodingBase64;
 
     return rv;
+}
+
+Lorawan_result Common::calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac)
+{
+    unsigned char mact[16] = {0};
+    size_t mactlen;
+   unsigned char *key = reinterpret_cast<unsigned char*>(&keyVal.at(0));
+   unsigned char *message = reinterpret_cast<unsigned char*>(&msgVal.at(0));
+
+    CMAC_CTX *ctx = CMAC_CTX_new();
+    CMAC_Init(ctx, key, 16, EVP_aes_128_cbc(), NULL);
+
+    CMAC_Update(ctx, message, msgVal.size());
+    CMAC_Final(ctx, mact, &mactlen);
+
+    /*  TEST:
+     *     bytes key = { 0x2b,0x7e,0x15,0x16,
+                            0x28,0xae,0xd2,0xa6,
+                            0xab,0xf7,0x15,0x88,
+                            0x09,0xcf,0x4f,0x3c};
+
+    //
+          bytes message = { 0x6b,0xc1,0xbe,0xe2,
+                                0x2e,0x40,0x9f,0x96,
+                                0xe9,0x3d,0x7e,0x11,
+                                0x73,0x93,0x17,0x2a };
+     *
+     * expected result T = 070a16b4 6b4d4144 f79bdd9d d04a287c */
+    cmac = bytes(mact, mact + mactlen);
+    CMAC_CTX_free(ctx);
+
+    return Lorawan_result::Success;
 }
 
 Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &littleEndianValue)

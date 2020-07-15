@@ -33,6 +33,8 @@ public:
     void setJsonString(const std::string &value);
     void setMagicFour(const bytes &value);
     bytes getMagicFour() const;
+    bytes getMIC() const;
+    void setMIC(const bytes &value);
 };
 
 #endif // LORAWANPACKET_H

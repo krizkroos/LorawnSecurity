@@ -1,5 +1,5 @@
 #include "bruteforcing_mic.h"
-#include "packetstorage.h"
+
 #include "Utils/common.h"
 #include "Utils/jsonparser.h"
 
@@ -11,6 +11,73 @@ BruteforcingMIC::BruteforcingMIC()
 
 }
 
+Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dataPkt)
+{
+    std::string jsonToSend{};
+    DataPacket copyPacket(dataPkt);
+
+    unsigned long int ulCount = Common::bytes2ULong(copyPacket.getFrameCounter());
+
+    ulCount +=1;
+
+    copyPacket.setFrameCounter(Common::ulong2Bytes(ulCount));
+
+
+    if(calculateMIC(dataPkt) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorCalcMIC;
+    }
+
+    if(copyPacket.serialialize() != Lorawan_result::Success)
+        return Lorawan_result::ErrorSerialize;
+
+
+
+    if(createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
+            != Lorawan_result::Success)
+        return Lorawan_result::ErrorCreatingPacket;
+
+    std::cout << "sending guard packet with frame counter = " + std::to_string(ulCount) << std::endl;
+
+    if(send(copyPacket.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
+    {
+        std:: cout << "error sending guard packet!" << std::endl;
+    }
+
+    return Lorawan_result::Success;
+}
+
+Lorawan_result BruteforcingMIC::calculateMIC(std::shared_ptr<DataPacket> dataPkt)
+{
+    std::cout << "Calculating new MIC value" << std::endl;
+    std::cout << "previous value of MIC: " << Common::bytes2HexStr(dataPkt->getMIC()) << std::endl;
+
+
+
+    return Lorawan_result::Success;
+}
+
+Lorawan_result BruteforcingMIC::sendDeathPacket()
+{
+    //calculateMIC();
+
+    return Lorawan_result::Success;
+
+}
+
+Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<JoinRequestPacket> requestPkt)
+{
+    testDevice->setAppEUI(requestPkt->getAppEUI());
+    testDevice->setDevEUI(requestPkt->getDevEUI());
+    testDevice->setEui64(requestPkt->getEui64());
+
+    uplink.setDstPort(requestPkt->getDstPort());
+    uplink.setSrcPort(requestPkt->getSrcPort());
+
+    uplink.setDestinationAddress(requestPkt->getDestinationAddress());
+
+    return Lorawan_result::Success;
+}
 Lorawan_result BruteforcingMIC::launch()
 {
     PacketStorage *storage = PacketStorage::getInstance();
@@ -20,36 +87,27 @@ Lorawan_result BruteforcingMIC::launch()
 
     if(requests.size() > 0)
     {
-        std::shared_ptr<JoinRequestPacket> firstReq = requests.front();
-        testDevice->setAppEUI(firstReq->getAppEUI());
-        testDevice->setDevEUI(firstReq->getDevEUI());
-        testDevice->setEui64(firstReq->getEui64());
+        if(setUpSending(requests.front()) != Lorawan_result::Success)
+        {
+            return Lorawan_result::ErrorTestSetUp;
+        }
 
-        uplink.setDstPort(firstReq->getDstPort());
-        uplink.setSrcPort(firstReq->getSrcPort());
+        std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
 
-        uplink.setDestinationAddress(firstReq->getDestinationAddress());
-
-        std::vector<std::shared_ptr<DataPacket> > macPayload = storage->getMacPayloadPacket();
-
-        if(macPayload.size() > 0)
+        if(macPayloads.size() > 0)
         {
 
-            std::shared_ptr<DataPacket> firstData = macPayload.front();
+            std::shared_ptr<DataPacket> firstPayload = macPayloads.front();
 
-            std::string jsonToSend{};
-            DataPacket copyPacket(firstData);
-
-            if(createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
-                    != Lorawan_result::Success)
-                return Lorawan_result::ErrorCreatingPacket;
-
-            std::cout << "sending packet " << std::endl;
-
-            if(send(copyPacket.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
+            if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
             {
-                std:: cout << "error sending packet!" << std::endl;
+                return Lorawan_result::ErrorTestSetUp;
             }
+
+            //            if(sendDeathPacket() != Lorawan_result::Success)
+            //            {
+            //                return Lorawan_result::ErrorTest;
+            //            }
 
 
         } else

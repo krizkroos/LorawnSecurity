@@ -87,10 +87,12 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                     std::cout << "----------lorawan data -------------" << std::endl;
                     std::cout << lorawanData  << std::endl;
                     bytes b64Data = Common::str2Bytes(lorawanData);
-                    std::cout << Common::bytes2HexStr(b64Data) << std::endl;
+                    //std::cout << Common::bytes2HexStr(b64Data) << std::endl;
                     bytes rawPacket{};
                     if(Common::decodeBase64(b64Data,rawPacket) == Lorawan_result::Success)
                     {
+
+                        std::cout << "raw Packet: \n" << Common::bytes2HexStr(rawPacket) << std::endl;
                         PacketStorage* storage = PacketStorage::getInstance();
 
                         switch(rawPacket.front())
