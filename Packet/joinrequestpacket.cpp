@@ -17,27 +17,26 @@ void JoinRequestPacket::setEui64(const bytes &value)
     eui64 = value;
 }
 
-Tins::IP JoinRequestPacket::getDestinationAddress() const
-{
-    return destinationAddress;
-}
 
-void JoinRequestPacket::setDestinationAddress(std::string value, bool convertToBigEndian)
-{
-    std::string ipAddress{};
-    if(convertToBigEndian)
-    {
+//void JoinRequestPacket::setDestinationAddress(std::string value, bool convertToBigEndian)
+//{
+//    std::string ipAddress{};
+//    if(convertToBigEndian)
+//    {
 
-        //TODO Common::convertIPAddress(const bytes address, bytes &convertedAddr)
-    }
-    else
-    {
-        ipAddress =value;
-    }
+//        //TODO Common::convertIPAddress(const bytes address, bytes &convertedAddr)
+//    }
+//    else
+//    {
+//        ipAddress =value;
+//    }
 
 
-    destinationAddress = Tins::IP(ipAddress);
-}
+//    destinationAddress = Tins::IP(ipAddress);
+//}
+
+
+
 
 uint16_t JoinRequestPacket::getDstPort() const
 {

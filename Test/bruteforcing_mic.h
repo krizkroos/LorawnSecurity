@@ -19,7 +19,7 @@ private:
     Lorawan_result sendGuardPacket(std::shared_ptr<DataPacket> dataPkt);
     Lorawan_result send(bytes magicFour, bytes eui64, std::string json);
     Lorawan_result createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend);
-    Lorawan_result calculateMIC(std::shared_ptr<DataPacket> dataPkt);
+    Lorawan_result calculateMIC(DataPacket &dataPkt);
     Lorawan_result sendDeathPacket();
 };
 

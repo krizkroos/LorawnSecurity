@@ -35,6 +35,11 @@ void LorawanPacket::setMIC(const bytes &value)
     MIC = value;
 }
 
+Tins::IP LorawanPacket::getPacketIP() const
+{
+    return packetIP;
+}
+
 LorawanPacket::LorawanPacket()
 {
     
@@ -43,6 +48,26 @@ LorawanPacket::LorawanPacket()
 LorawanPacket::LorawanPacket(MsgType type)
 {
     _type = type;
+}
+
+Lorawan_result LorawanPacket::setIP(std::string dstAddr, Tins::IP::Flags flags, uint16_t id, uint8_t tos, uint8_t ttl, bool convertToBigEndian)
+{
+    if(convertToBigEndian)
+    {
+
+    }
+    else
+    {
+        packetIP = Tins::IP(dstAddr);
+        packetIP.id(id);
+        packetIP.tos(tos);
+        packetIP.ttl(ttl);
+        packetIP.flags(flags);
+    }
+
+
+
+    return Lorawan_result::Success;
 }
 
 LorawanPacket::LorawanPacket(const std::shared_ptr<LorawanPacket> packet)

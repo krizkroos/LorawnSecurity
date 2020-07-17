@@ -13,7 +13,6 @@ private:
 
 
     bytes eui64;
-    Tins::IP destinationAddress;
     uint16_t dstPort;
     uint16_t srcPort;
 
@@ -24,8 +23,6 @@ public:
 
     bytes getEui64() const;
     void setEui64(const bytes &value);
-    Tins::IP getDestinationAddress() const;
-    void setDestinationAddress(std::string, bool convertToBigEndian = true);
     uint16_t getDstPort() const;
     void setDstPort(const uint16_t &value);
     uint16_t getSrcPort() const;

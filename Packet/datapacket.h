@@ -19,6 +19,7 @@ public:
     Lorawan_result serialialize();
     bytes getFrameCounter() const;
     void setFrameCounter(const bytes &value);
+    bytes getDevAddr() const;
 };
 
 #endif // DATAPACKET_H

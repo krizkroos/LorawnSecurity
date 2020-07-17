@@ -2,9 +2,9 @@
 #include <iostream>
 
 
-void UplinkController::setDestinationAddress(const Tins::IP &value)
+void UplinkController::setIP(const Tins::IP &value)
 {
-    destinationAddress = value;
+    packetIP = value;
 }
 
 void UplinkController::setMagicFour(const bytes &value)
@@ -35,9 +35,10 @@ UplinkController::UplinkController()
 
 Lorawan_result UplinkController::send(std::string rawData)
 {
-    Tins::IP ipPacket = destinationAddress / Tins::UDP(srcPort, dstPort) / Tins::RawPDU(rawData);
+    packetIP.id(packetIP.id() + 10);
+    Tins::IP ipPacket = packetIP / Tins::UDP(dstPort, srcPort) / Tins::RawPDU(rawData);
 
     sender.send(ipPacket, "wlan0");
-    std::cout << "after sending packet!" << std::endl;
+    std::cout << "after sending packet with IP.id = " << std::to_string(packetIP.id()) << std::endl;
     return Lorawan_result::Success;
 }

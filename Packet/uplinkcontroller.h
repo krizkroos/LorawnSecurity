@@ -8,7 +8,7 @@ class UplinkController
 {
 private:
     Tins::PacketSender sender;
-    Tins::IP destinationAddress;
+    Tins::IP packetIP;
     bytes magicFour;
     uint16_t dstPort;
     uint16_t srcPort;
@@ -17,7 +17,7 @@ public:
     UplinkController();
     Lorawan_result send(std::string rawData);
 
-    void setDestinationAddress(const Tins::IP &value);
+    void setIP(const Tins::IP &value);
     void setMagicFour(const bytes &value);
     void setDstPort(const uint16_t &value);
     void setSrcPort(const uint16_t &value);

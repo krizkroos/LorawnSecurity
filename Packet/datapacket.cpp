@@ -13,6 +13,11 @@ void DataPacket::setFrameCounter(const bytes &value)
     frameCounter = value;
 }
 
+bytes DataPacket::getDevAddr() const
+{
+    return devAddr;
+}
+
 DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
 {
 
