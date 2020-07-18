@@ -40,6 +40,36 @@ Tins::IP LorawanPacket::getPacketIP() const
     return packetIP;
 }
 
+bytes LorawanPacket::getEui64() const
+{
+    return eui64;
+}
+
+void LorawanPacket::setEui64(const bytes &value)
+{
+    eui64 = value;
+}
+
+uint16_t LorawanPacket::getSrcPort() const
+{
+    return srcPort;
+}
+
+void LorawanPacket::setSrcPort(const uint16_t &value)
+{
+    srcPort = value;
+}
+
+uint16_t LorawanPacket::getDstPort() const
+{
+    return dstPort;
+}
+
+void LorawanPacket::setDstPort(const uint16_t &value)
+{
+    dstPort = value;
+}
+
 LorawanPacket::LorawanPacket()
 {
     

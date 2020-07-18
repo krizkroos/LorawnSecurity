@@ -4,20 +4,6 @@
 #include <iostream>
 
 
-
-
-
-bytes JoinRequestPacket::getEui64() const
-{
-    return eui64;
-}
-
-void JoinRequestPacket::setEui64(const bytes &value)
-{
-    eui64 = value;
-}
-
-
 //void JoinRequestPacket::setDestinationAddress(std::string value, bool convertToBigEndian)
 //{
 //    std::string ipAddress{};
@@ -38,25 +24,6 @@ void JoinRequestPacket::setEui64(const bytes &value)
 
 
 
-uint16_t JoinRequestPacket::getDstPort() const
-{
-    return dstPort;
-}
-
-void JoinRequestPacket::setDstPort(const uint16_t &value)
-{
-    dstPort = value;
-}
-
-uint16_t JoinRequestPacket::getSrcPort() const
-{
-    return srcPort;
-}
-
-void JoinRequestPacket::setSrcPort(const uint16_t &value)
-{
-    srcPort = value;
-}
 
 bytes JoinRequestPacket::getAppEUI() const
 {

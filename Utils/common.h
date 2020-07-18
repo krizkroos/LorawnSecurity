@@ -23,6 +23,7 @@ public:
 
     static bytes ulong2Bytes(unsigned long int value);
     static Lorawan_result calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac);
+    static Lorawan_result encrypt_aes128(bytes key, bytes message, bytes encMsg);
 private:
     static size_t calcDecodeLength(const char *b64input);
 };

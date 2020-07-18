@@ -12,6 +12,7 @@
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <openssl/cmac.h>
+#include <openssl/err.h>
 
 Common::Common()
 {
@@ -214,6 +215,62 @@ Lorawan_result Common::calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac)
     return Lorawan_result::Success;
 }
 
+Lorawan_result Common::encrypt_aes128(bytes key, bytes message, bytes encMsg)
+{
+
+//    EVP_CIPHER_CTX *ctx;
+
+//        int len;
+
+//        int ciphertext_len;
+
+//        /* Create and initialise the context */
+//        if(!(ctx = EVP_CIPHER_CTX_new()))
+//        {
+
+//        }
+
+
+//        /*
+//         * Initialise the encryption operation. IMPORTANT - ensure you use a key
+//         * and IV size appropriate for your cipher
+//         * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+//         * IV size for *most* modes is the same as the block size. For AES this
+//         * is 128 bits
+//         */
+//        if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
+//        {
+
+//        }
+
+//        /*
+//         * Provide the message to be encrypted, and obtain the encrypted output.
+//         * EVP_EncryptUpdate can be called multiple times if necessary
+//         */
+//        if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+//        {
+//        }
+
+//        ciphertext_len = len;
+
+//        /*
+//         * Finalise the encryption. Further ciphertext bytes may be written at
+//         * this stage.
+//         */
+//        if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
+//        {
+
+//        }
+//        ciphertext_len += len;
+
+//        /* Clean up */
+//        EVP_CIPHER_CTX_free(ctx);
+
+//        return ciphertext_len;
+
+//    return Lorawan_result::Success;
+}
+
 Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &littleEndianValue)
 {
     littleEndianValue = std::vector<byte>(bigEndianValue.size(), 0x00); //init
@@ -254,7 +311,7 @@ Lorawan_result Common::convertIPAddress(const bytes address, bytes &convertedAdd
 
     //UNFINISHED
     std::pair<byte,byte> value;
-    size_t refSize =address.size() ;
+    size_t refSize =address.size();
     if(address.empty())
         return Lorawan_result::InputSizeZero;
 

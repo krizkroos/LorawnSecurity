@@ -127,6 +127,9 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                 accPacket->setRawData(rawPacket);
                                 accPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
                                 accPacket->setJsonString(jsonString);
+                                accPacket->setSrcPort(udp.sport());
+                                accPacket->setEui64(bytes(rawdata.begin() +4, rawdata.begin() + 12));
+                                accPacket->setDstPort(udp.dport());
                                 accPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(), (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
                                 storage->addPacket(accPacket);
 
@@ -144,6 +147,9 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                 std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
                                 dataPacket->setRawData(rawPacket);
                                 dataPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
+                                dataPacket->setEui64(bytes(rawdata.begin() +4, rawdata.begin() + 12));
+                                dataPacket->setSrcPort(udp.sport());
+                                dataPacket->setDstPort(udp.dport());
                                 dataPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(), (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
                                 dataPacket->deserialize();
                                 dataPacket->setJsonString(jsonString);

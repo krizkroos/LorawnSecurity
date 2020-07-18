@@ -35,9 +35,12 @@ UplinkController::UplinkController()
 
 Lorawan_result UplinkController::send(std::string rawData)
 {
-    packetIP.id(packetIP.id() + 10);
-    Tins::IP ipPacket = packetIP / Tins::UDP(dstPort, srcPort) / Tins::RawPDU(rawData);
+    static uint16_t inc = 10;
 
+    inc+= 10;
+    packetIP.id(packetIP.id() + inc);
+
+    Tins::IP ipPacket = packetIP / Tins::UDP(dstPort, srcPort) / Tins::RawPDU(rawData);
     sender.send(ipPacket, "wlan0");
     std::cout << "after sending packet with IP.id = " << std::to_string(packetIP.id()) << std::endl;
     return Lorawan_result::Success;

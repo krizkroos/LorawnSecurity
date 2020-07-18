@@ -11,22 +11,11 @@ private:
     bytes devEUI;
     bytes devNonce;
 
-
-    bytes eui64;
-    uint16_t dstPort;
-    uint16_t srcPort;
-
 public:
     JoinRequestPacket();
     Lorawan_result deserialize();
 
 
-    bytes getEui64() const;
-    void setEui64(const bytes &value);
-    uint16_t getDstPort() const;
-    void setDstPort(const uint16_t &value);
-    uint16_t getSrcPort() const;
-    void setSrcPort(const uint16_t &value);
     bytes getAppEUI() const;
     void setAppEUI(const bytes &value);
     bytes getDevEUI() const;

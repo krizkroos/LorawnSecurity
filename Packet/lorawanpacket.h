@@ -20,6 +20,11 @@ protected:
     bytes MIC;
     bytes magicFour;
     Tins::IP packetIP;
+
+
+    bytes eui64;
+    uint16_t dstPort;
+    uint16_t srcPort;
 public:
     LorawanPacket();
     LorawanPacket(MsgType type);
@@ -38,6 +43,12 @@ public:
     bytes getMIC() const;
     void setMIC(const bytes &value);
 
+    bytes getEui64() const;
+    void setEui64(const bytes &value);
+    uint16_t getSrcPort() const;
+    void setSrcPort(const uint16_t &value);
+    uint16_t getDstPort() const;
+    void setDstPort(const uint16_t &value);
 };
 
 #endif // LORAWANPACKET_H
