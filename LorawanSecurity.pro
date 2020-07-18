@@ -15,6 +15,7 @@ INCLUDEPATH += $${LIB_SDK}/libtins/include
 DEPENDPATH += $${LIB_SDK}/libtins/include
 
 SOURCES += \
+    Examples/tester.cpp \
     Packet/datapacket.cpp \
     Packet/joinacceptpacket.cpp \
     Packet/joinrequestpacket.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
     packetstorage.cpp
 
 HEADERS += \
+    Examples/tester.h \
     Packet/packetcontroller.h \
     Packet/uplinkcontroller.h \
     Test/bruteforcing_mic.h \

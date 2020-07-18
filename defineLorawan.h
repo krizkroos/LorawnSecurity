@@ -8,6 +8,7 @@ enum class Lorawan_result
 {
     Success,
     Error,
+    ErrorPrerequisite,
     ErrorTest,
     ErrorTestSetUp,
     WrongSniffingParameters,

@@ -9,7 +9,16 @@
 
 BruteforcingMIC::BruteforcingMIC()
 {
+//     auto startFactoring = std::chrono::high_resolution_clock::now();
 
+//    for(unsigned long int i=1; i < 4294967295; i++)
+//    {
+//        micValues.emplace_back(Common::ulong2Bytes(i));
+//    }
+
+//    auto stop = std::chrono::high_resolution_clock::now();
+//    auto duration = std::chrono::duration_cast<std::chrono::duration<int64_t, std::milli>>( stop - startFactoring ).count();
+//    std::cout << "all MIC were generated in : " << duration  << " ms" << std::endl;
 
 }
 
@@ -105,7 +114,7 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCn
     }
     if(changeFCnt)
     {
-        unsigned long int dosCount = Common::bytes2ULong(dataPkt.getFrameCounter());
+        unsigned long int dosCount = Common::bytes2ULong(_localFCnt);
 
         dosCount += MAX_FCNT_GAP;
 
@@ -140,7 +149,7 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCn
 
     initBlock.emplace_back(static_cast<byte>(_msg.size()));
 
-    bytes key = {0x04,0x39,0xCE,0x27,0x27,0x0C,0xB3,0xC9,0x7D,0x1D,0x40,0x8A,0x87,0x12,0x52,0x02};
+    bytes key = {0xB4,0x2D,0x67,0x33,0xB7,0x3E,0xA4,0x5C,0xEB,0x53,0xCB,0xEE,0x4A,0xCA,0x5D,0x28};
 
     bytes message{};
     message.insert(message.begin(), initBlock.begin(), initBlock.end());

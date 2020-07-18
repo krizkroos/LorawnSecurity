@@ -4,12 +4,14 @@
 #include "lorawantest.h"
 #include "packetstorage.h"
 
+#include <vector>
 
 class BruteforcingMIC : public LorawanTest
 {
 public:
     BruteforcingMIC();
     const unsigned long int MAX_FCNT_GAP = 400;
+    std::vector<std::vector<unsigned char>> micValues;
     virtual Lorawan_result stop() override;
     virtual Lorawan_result launch() override;
 
