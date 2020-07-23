@@ -9,7 +9,7 @@ class Common
 public:
     Common();
     static std::string bytes2Str(bytes input);
-    static std::string bytes2HexStr(bytes input, bool withSpace=true);
+    static std::string bytes2HexStr(bytes input, bool withSpace=true, bool withBreaks = false);
     static bytes str2Bytes(std::string input);
     static unsigned long int bytes2ULong(const bytes input, bool bigEndian =true);
     static Lorawan_result decodeBase64(bytes input, bytes &decoded);

@@ -1,6 +1,7 @@
 #include "tester.h"
 #include <iostream>
 
+#include "Utils/logger.h"
 
 LorawanTester::LorawanTester()
 {
@@ -14,6 +15,7 @@ Lorawan_result LorawanTester::testMIC()
 
     std::cout << "testing MIC" << std::endl;
 
+    writeLog(Logger::RAW_PACKET, "test 2");
 
     params.setLogFileName("lorawan-test.log");
     loraSec.setUpTestParams(params);
@@ -21,7 +23,7 @@ Lorawan_result LorawanTester::testMIC()
 
 
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
-    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(1, SniffingPackets::Data);
+    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(10, SniffingPackets::Data);
     mitm->setName("MiTM");
     std::shared_ptr<BruteforcingMIC> testOne = std::make_shared<BruteforcingMIC>();
 

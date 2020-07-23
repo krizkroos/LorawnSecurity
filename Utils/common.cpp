@@ -29,17 +29,35 @@ std::string Common::bytes2Str(bytes input)
     return output;
 }
 
-std::string Common::bytes2HexStr(bytes input, bool withSpace)
+std::string Common::bytes2HexStr(bytes input, bool withSpace, bool withBreaks)
 {
     std::ostringstream stream;
 
     stream << std::hex << std::uppercase << std::setfill( '0');
 
+    int counter{0};
+
+    if(withBreaks)
+    {
+        stream << "\n\n";
+    }
     for(auto &byte : input)
     {
         stream << std::setw(2) << static_cast<int>(byte);
+
+        if(withBreaks)
+        {
+           if(++counter == 20) // first line is also good
+           {
+               stream << "\n";
+               counter =0;
+               continue;
+           }
+        }
+
         if(withSpace)
             stream << " ";
+
     }
 
     return stream.str();

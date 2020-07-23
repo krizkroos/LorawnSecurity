@@ -63,6 +63,8 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
 
             bytes rawdata = udpData->serialize();
 
+            std::cout << "received data: "<< Common::bytes2Str(rawdata);
+
             std::cout << "size of raw data: " << std::to_string(rawdata.size())<< std::endl;
             std::cout << Common::bytes2HexStr(rawdata) << std::endl;
             std::cout <<" ------------------check if it is valid packet " << std::endl;
@@ -144,6 +146,10 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                             case 0xA0: //confirmed Down
                             {
                                 std::cout << "Received Data packet" << std::endl;
+                                if(rawPacket.front() == 0x60)
+                                {
+                                    std::cout << "Got what I wanted" << std::endl;
+                                }
                                 std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
                                 dataPacket->setRawData(rawPacket);
                                 dataPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));

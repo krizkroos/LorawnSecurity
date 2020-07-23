@@ -31,6 +31,7 @@ SOURCES += \
     Test/lorawantest.cpp \
     Utils/common.cpp \
     Utils/jsonparser.cpp \
+    Utils/logger.cpp \
     lorawansecurity.cpp \
     packetstorage.cpp
 
@@ -42,6 +43,7 @@ HEADERS += \
     Test/testparams.h \
     Utils/common.h \
     Utils/jsonparser.h \
+    Utils/logger.h \
     defineLorawan.h \
     LorawanSecurity_global.h \
     Packet/datapacket.h \
