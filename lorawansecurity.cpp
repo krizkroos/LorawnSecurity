@@ -1,5 +1,6 @@
 #include "lorawansecurity.h"
 #include <iostream>
+#include "Utils/logger.h"
 
 LorawanSecurity::LorawanSecurity()
 {
@@ -24,6 +25,7 @@ Lorawan_result LorawanSecurity::addTest(std::shared_ptr<LorawanTest> test)
 Lorawan_result LorawanSecurity::setUpTestParams(TestParams &params)
 {
     _testParams = params;
+    Logger logger("lorawan.log", Logger::JSON | Logger::RawData | Logger::MiTM);
     return Lorawan_result::Success;
 }
 

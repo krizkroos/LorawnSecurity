@@ -1,7 +1,7 @@
 #include "jsonparser.h"
+#include "logger.h"
 
 
-#include <iostream>
 using namespace rapidjson;
 JsonParser::JsonParser()
 {
@@ -23,6 +23,9 @@ std::string JsonParser::getJson()
 //final test
 //"{\"rxpk\":[{\"tmst\":2536840083,\"time\":\"2020-07-10T09:29:36.255849Z\",\"chan\":1,\"rfch\":1,\"freq\":868.300000,\"stat\":1,\"modu\":\"LORA\",\"datr\":\"SF7BW125\",\"codr\":\"4/5\",\"lsnr\":8.5,\"rssi\":-31,\"size\":23,\"data\":\"AKbtAtB+1bNwgdYfAAujBACIJ6iTMRQ=\"}]}";
 
+//
+//"{\"txpk\":\{\"imme\":false,\"tmst\":1292149667,\"freq\":868.1,\"rfch\":0,\"powe\":14,\"modu\":\"LORA\",\"datr\":\"SF7BW125\",\"codr\":\"4/5\",\"ipol\":true,\"size\":33,//\"ncrc\":true,\"data\":\"IGdvKRC7I5CtcvV+tYi30VLgOlHHPGINKwBV8SHFuQrp\"}}"
+
 
 Lorawan_result JsonParser::parse(std::string json)
 {
@@ -37,17 +40,18 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 
     if(key.size() > 2 || key.size() < 1)
         return Lorawan_result::NotSupportedFeature;
-    std::cout << "value to input: " << value << std::endl;
+    writeLog(Logger::JSON,"value to input: ");
+
     Document::AllocatorType& allocator = map.GetAllocator();
     std::string currentKey = key.at(0);
     if(map.IsObject()) // in json string = {"key" : "value" }
     {
-        std::cout << "object json type" <<std::endl;
+        writeLog(Logger::JSON, "object json type");
 
         if(!map.HasMember(currentKey.c_str()))
         {
-            std::cout << "no member with root key: " << key.at(0)<< std::endl;
-            return Lorawan_result::NoValueAvailable;
+             writeLog(Logger::JSON,"no member with root key: ");
+             return Lorawan_result::NoValueAvailable;
         }
 
         if(key.size() == 1)
@@ -55,7 +59,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 
             if(!map[currentKey.c_str()].IsString())
             {
-               std::cout << "not a string but provided only one key" <<std::endl;
+               writeLog(Logger::JSON,"not a string but provided only one key");
                return Lorawan_result::NoValueAvailable;
             }
 
@@ -67,7 +71,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
         {
             if(!map[currentKey.c_str()].IsArray())
             {
-               std::cout << "recurency not available" <<std::endl;
+               writeLog(Logger::JSON,"recurency not available");
                return Lorawan_result::NoValueAvailable;
             }
 
@@ -79,7 +83,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
     }
     else if(map.IsArray()) // in json string =  [{"key" : "value" }] //TODO support [{"key" :[ "key2" : "value" ]}]
     {
-        std::cout << "array json type" <<std::endl;
+        writeLog(Logger::JSON,"array json type");
         bool foundValue = false;
         for(Value::ValueIterator itr = map.Begin(); itr != map.End(); ++itr)
         {
@@ -91,7 +95,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
             {
                 if(it->name.GetString() == currentKey.c_str())
                 {
-                    std::cout << "changing value for " << it->name.GetString() << std::endl;
+                    writeLog(Logger::JSON,"changing value for ");
                     Value input(value.c_str(),allocator);
 
                     return Lorawan_result::Success;
@@ -102,7 +106,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
     }
     else
     {
-        std::cout << "unsupported json type" <<std::endl;
+        writeLog(Logger::JSON,"unsupported json type");
         return Lorawan_result::NoValueAvailable;
     }
 
@@ -113,14 +117,14 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 Lorawan_result JsonParser::changeValueInArray(std::string root, std::string key, const std::string value)
 {
 
-    std::cout << "value to change in array: " << value << std::endl;
+    writeLog(Logger::JSON,"value to change in array: ");
     Document::AllocatorType& allocator = map.GetAllocator();
     if(!map[root.c_str()].IsArray())
     {
-        std::cout << "not an array type" <<std::endl;
+        writeLog(Logger::JSON,"not an array type");
         return Lorawan_result::NoValueAvailable;
     }
-    std::cout << "looking for " << key << "in an array " << root <<std::endl;
+    writeLog(Logger::JSON,"looking for " + key + "in an array " +root);
     bool foundValue = false;
     for(Value::ValueIterator itr = map[root.c_str()].Begin(); itr != map[root.c_str()].End(); ++itr)
     {
@@ -137,7 +141,7 @@ Lorawan_result JsonParser::changeValueInArray(std::string root, std::string key,
             {
                     if(!it->value.IsString())
                     {
-                        std::cout << "not a string but provided only one key" <<std::endl;
+                        writeLog(Logger::JSON,"not a string but provided only one key");
                         return Lorawan_result::NoValueAvailable;
                     }
 
@@ -166,11 +170,11 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
     std::string currentKey = key.at(0);
     if(map.IsObject()) // in json string = {"key" : "value" }
     {
-        std::cout << "object json type" <<std::endl;
+        writeLog(Logger::JSON, "object json type");
 
         if(!map.HasMember(currentKey.c_str()))
         {
-            std::cout << "no member with root key: " << key.at(0)<< std::endl;
+            writeLog(Logger::JSON,"no member with root key: ");
             return Lorawan_result::NoValueAvailable;
         }
 
@@ -179,7 +183,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
 
             if(!map[currentKey.c_str()].IsString())
             {
-               std::cout << "not a string but provided only one key" <<std::endl;
+               writeLog(Logger::JSON,"not a string but provided only one key");
                return Lorawan_result::NoValueAvailable;
             }
 
@@ -191,8 +195,8 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
         {
             if(!map[currentKey.c_str()].IsArray())
             {
-               std::cout << "recurency not available" <<std::endl;
-               return Lorawan_result::NoValueAvailable;
+                writeLog(Logger::JSON,"recurency not available");
+                return Lorawan_result::NoValueAvailable;
             }
 
             std::string rootKey = key.at(0);
@@ -203,7 +207,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
     }
     else if(map.IsArray()) // in json string =  [{"key" : "value" }] //TODO support [{"key" :[ "key2" : "value" ]}]
     {
-        std::cout << "array json type" <<std::endl;
+        writeLog(Logger::JSON,"array json type");
         bool foundValue = false;
         for(Value::ConstValueIterator itr = map.Begin(); itr != map.End(); ++itr)
         {
@@ -215,7 +219,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
             {
                 if(it->name.GetString() == currentKey.c_str())
                 {
-                    std::cout << "found value for name: " << it->name.GetString() << std::endl;
+                    writeLog(Logger::JSON,"found value for name: " + std::string(it->name.GetString()));
                     value = std::string(it->value.GetString());
                     foundValue = true;
                     break;
@@ -231,7 +235,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
     }
     else
     {
-        std::cout << "unsupported json type" <<std::endl;
+        writeLog(Logger::JSON,"unsupported json type");
         return Lorawan_result::NoValueAvailable;
     }
 
@@ -242,10 +246,10 @@ Lorawan_result JsonParser::getValueFromArrayWithKey(std::string root, std::strin
 {
     if(!map[root.c_str()].IsArray())
     {
-        std::cout << "not an array type" <<std::endl;
+        writeLog(Logger::JSON,"not an array type");
         return Lorawan_result::NoValueAvailable;
     }
-    std::cout << "looking for " << key << "in an array " << root <<std::endl;
+    writeLog(Logger::JSON,"looking for " + key + "in an array " +  root);
     bool foundValue = false;
     for(Value::ConstValueIterator itr = map[root.c_str()].Begin(); itr != map[root.c_str()].End(); ++itr)
     {
@@ -259,7 +263,7 @@ Lorawan_result JsonParser::getValueFromArrayWithKey(std::string root, std::strin
 
             if(it->name.GetString() == key)
             {
-                std::cout << "found value for name: " << it->name.GetString() << std::endl;
+                 writeLog(Logger::JSON,"found value for name: " + std::string(it->name.GetString()));
                 value = std::string(it->value.GetString());
                 foundValue = true;
                 break;

@@ -15,7 +15,6 @@ Lorawan_result LorawanTester::testMIC()
 
     std::cout << "testing MIC" << std::endl;
 
-    writeLog(Logger::RAW_PACKET, "test 2");
 
     params.setLogFileName("lorawan-test.log");
     loraSec.setUpTestParams(params);

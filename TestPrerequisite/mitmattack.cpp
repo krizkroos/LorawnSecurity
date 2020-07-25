@@ -5,7 +5,7 @@
 #include "Utils/jsonparser.h"
 #include "defineLorawan.h"
 
-
+#include "Utils/logger.h"
 int MiTMAttack::_wantedPacket = 0;
 int MiTMAttack::_sniffedPacket = 0;
 SniffingPackets MiTMAttack::_whichPacketWanted = SniffingPackets::Data;
@@ -23,16 +23,12 @@ MiTMAttack::MiTMAttack()
 
 }
 
-
 Lorawan_result MiTMAttack::start()
 {
-    std::cout << "start MiTM prerequisite" << std::endl;
+    writeLog(Logger::MiTM,"start MiTM prerequisite");
     Lorawan_result result = Lorawan_result::Success;
 
-    //std::cout << "WantedPacket = " << std::to_string(MiTMAttack::_wantedPacket) << std::endl;
-    //std::cout << "SniffedPacket = " << std::to_string(MiTMAttack::_sniffedPacket) << std::endl;
     result = sniffing("wlan0", "udp port 1700");
-
     return result;
 
 }
@@ -45,150 +41,170 @@ Lorawan_result MiTMAttack::stop()
 bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
 {
 
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << "------------------------------------"<< std::endl;
+    writeLog(Logger::MiTM, "-------------------------");
+
     if(packet.pdu()->find_pdu<Tins::IP>())
     {
         const Tins::IP &ip = packet.pdu()->rfind_pdu<Tins::IP>();
-        std::cout<<"---------- IP protocol -------------" << std::endl;
-        std::cout << ip.src_addr() << "  -->  " << ip.dst_addr() << std::endl;
+
+        writePacketLog(packet);
 
         if(ip.inner_pdu()->find_pdu<Tins::UDP>())
         {
-            std::cout<<"------------UDP packet--------------" << std::endl;
             const Tins::UDP &udp = ip.inner_pdu()->rfind_pdu<Tins::UDP>();
-            std::cout << "src port: " << udp.sport() << "--> dst port: " << udp.dport() << std::endl;
             Tins::PDU* udpData = udp.inner_pdu();
 
-            bytes rawdata = udpData->serialize();
+            bytes serializedData = udpData->serialize();
 
-            std::cout << "received data: "<< Common::bytes2Str(rawdata);
+            writeLog(Logger::RawData,"UDP data:");
+            writeHexLog(Logger::RawData, serializedData);
+            writeLog(Logger::MiTM, "looking for type of lorawan data");
 
-            std::cout << "size of raw data: " << std::to_string(rawdata.size())<< std::endl;
-            std::cout << Common::bytes2HexStr(rawdata) << std::endl;
-            std::cout <<" ------------------check if it is valid packet " << std::endl;
+             bytes rawJson{};
+             std::string jsonString{};
+             JsonParser jParser;
+             Lorawan_result getLorawanData = Lorawan_result::Success;
+             std::string lorawanData{};
 
-            if(rawdata.at(3) == 0x00) //TODO why omit first three bytes and why 0x00 indicates wanted packet
+            if(serializedData.at(3) == 0x00)
+                //TODO why to omit first three bytes and why 0x00 indicates wanted rx packet
             {
-                bytes rawJson = bytes(rawdata.begin() +12, rawdata.end()); // omit EUI
-                std::cout << "received wanted packet " << std::endl;
+              writeLog(Logger::MiTM, "UPLINK lorawan packet");
+              rawJson = bytes(serializedData.begin() +12, serializedData.end()); // omit EUI
+              jsonString = Common::bytes2Str(rawJson);
+              jParser.parse(jsonString);
 
-                //std::cout << "raw Json: " << Common::bytes2HexStr(rawJson) << std::endl;
+              getLorawanData= jParser.getValue(jsonKeys({"data"}),lorawanData);
+            }
+            else if(serializedData.at(1) == 0x00)
+            {
+              writeLog(Logger::MiTM, "DOWNLINK lorawan packet");
+              rawJson = bytes(serializedData.begin() +4, serializedData.end()); // omit EUI
+              jsonString = Common::bytes2Str(rawJson);
+              jParser.parse(jsonString);
 
-                std::string jsonString = Common::bytes2Str(rawJson);
-                std::cout << "Json: " << jsonString << std::endl;
-                JsonParser jParser;
-                std::string lorawanData{};
-                jParser.parse(jsonString);
-
-                Lorawan_result rv = jParser.getValue(jsonKeys({"rxpk","data"}),lorawanData);
-
-                if(rv == Lorawan_result::Success)
-                {
-                    std::cout << "----------lorawan data -------------" << std::endl;
-                    std::cout << lorawanData  << std::endl;
-                    bytes b64Data = Common::str2Bytes(lorawanData);
-                    //std::cout << Common::bytes2HexStr(b64Data) << std::endl;
-                    bytes rawPacket{};
-                    if(Common::decodeBase64(b64Data,rawPacket) == Lorawan_result::Success)
-                    {
-
-                        std::cout << "raw Packet: \n" << Common::bytes2HexStr(rawPacket) << std::endl;
-                        PacketStorage* storage = PacketStorage::getInstance();
-
-                        switch(rawPacket.front())
-                        {
-                            case 0x00: //Request
-                            {
-                                std::cout << "Received JoinRequest packet" << std::endl;
-                                std::shared_ptr<JoinRequestPacket> reqPacket = std::make_shared<JoinRequestPacket>();
-                                reqPacket->setRawData(rawPacket);
-                                reqPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
-                                reqPacket->setEui64(bytes(rawdata.begin() +4, rawdata.begin() + 12));
-                                reqPacket->setJsonString(jsonString);
-                                reqPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(), (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
-                                reqPacket->setDstPort(udp.dport());
-                                reqPacket->setSrcPort(udp.sport());
-
-
-                                if(reqPacket->deserialize() != Lorawan_result::Success)
-                                    std::cout << "Error in deserialization of request packet" << std::endl;
-
-                                storage->addPacket(reqPacket);
-
-                                if(_whichPacketWanted == SniffingPackets::Request)
-                                    MiTMAttack::incrementSniffed();
-
-                                break;
-                            }
-                            case 0x20: //Accept
-                            {
-                                std::cout << "Received JoinAccept packet" << std::endl;
-                                std::shared_ptr<JoinAcceptPacket> accPacket = std::make_shared<JoinAcceptPacket>();
-                                accPacket->setRawData(rawPacket);
-                                accPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
-                                accPacket->setJsonString(jsonString);
-                                accPacket->setSrcPort(udp.sport());
-                                accPacket->setEui64(bytes(rawdata.begin() +4, rawdata.begin() + 12));
-                                accPacket->setDstPort(udp.dport());
-                                accPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(), (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
-                                storage->addPacket(accPacket);
-
-                                if(_whichPacketWanted == SniffingPackets::Accept)
-                                    MiTMAttack::incrementSniffed();
-
-                                break;
-                            }
-                            case 0x40: //unconfirmed Up
-                            case 0x60: //unconfirmed Down
-                            case 0x80: //confirmed Up
-                            case 0xA0: //confirmed Down
-                            {
-                                std::cout << "Received Data packet" << std::endl;
-                                if(rawPacket.front() == 0x60)
-                                {
-                                    std::cout << "Got what I wanted" << std::endl;
-                                }
-                                std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
-                                dataPacket->setRawData(rawPacket);
-                                dataPacket->setMagicFour(bytes(rawdata.begin(), rawdata.begin()+4));
-                                dataPacket->setEui64(bytes(rawdata.begin() +4, rawdata.begin() + 12));
-                                dataPacket->setSrcPort(udp.sport());
-                                dataPacket->setDstPort(udp.dport());
-                                dataPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(), (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
-                                dataPacket->deserialize();
-                                dataPacket->setJsonString(jsonString);
-                                storage->addPacket(dataPacket);
-
-                                if(_whichPacketWanted == SniffingPackets::Data)
-                                    MiTMAttack::incrementSniffed();
-
-                                break;
-                            }
-                            default:
-                            {
-                                std::cout << "unknown packet type " << rawPacket.front()  << std::endl;
-                                break;
-                            }
-                        }
-                    }else
-                    {
-                        std::cout << "Error decoding base64" << std::endl;
-                    }
-                }
-
+              getLorawanData= jParser.getValue(jsonKeys({"txpk","data"}),lorawanData);
 
             }
             else
-               std::cout <<"not a valid valid packet" << std::endl;
+            {
+                writeLog(Logger::MiTM, "Not a valid serialized Data");
+                return MiTMAttack::checkSniffedNumber();
+            }
+
+            if(getLorawanData == Lorawan_result::Success)
+            {
+                writeLog(Logger::MiTM, "successfully parsed lorawan data");
+                writeLog(Logger::MiTM, "Decoding from base64: " + lorawanData);
+
+                bytes b64Data = Common::str2Bytes(lorawanData);
+
+                writeLog(Logger::RawData,"Base64 raw data:");
+                writeHexLog(Logger::RawData, b64Data);
+
+                bytes rawPacket{};
+                if(Common::decodeBase64(b64Data,rawPacket) == Lorawan_result::Success)
+                {
+                    writeLog(Logger::RawData,"decoded Raw packet data:");
+                    writeHexLog(Logger::RawData, rawPacket);
+
+                    PacketStorage* storage = PacketStorage::getInstance();
+
+                    switch(rawPacket.front())
+                    {
+                    case 0x00: //Request
+                    {
+                        writeLog(Logger::MiTM, "received JoinRequest packet");
+                        std::shared_ptr<JoinRequestPacket> reqPacket = std::make_shared<JoinRequestPacket>();
+                        reqPacket->setRawData(rawPacket);
+                        reqPacket->setMagicFour(bytes(serializedData.begin(), serializedData.begin()+4));
+                        reqPacket->setEui64(bytes(serializedData.begin() +4, serializedData.begin() + 12));
+                        reqPacket->setJsonString(jsonString);
+                        reqPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(),
+                                         (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
+                        reqPacket->setDstPort(udp.dport());
+                        reqPacket->setSrcPort(udp.sport());
+
+
+                        if(reqPacket->deserialize() != Lorawan_result::Success)
+                            writeLog(Logger::MiTM, "Error in deserialization of request packet");
+
+                        storage->addPacket(reqPacket);
+
+                        if(_whichPacketWanted == SniffingPackets::Request)
+                            MiTMAttack::incrementSniffed();
+
+                        break;
+                    }
+                    case 0x20: //Accept
+                    {
+                        writeLog(Logger::MiTM, "received JoinAccept packet");
+                        std::shared_ptr<JoinAcceptPacket> accPacket = std::make_shared<JoinAcceptPacket>();
+                        accPacket->setRawData(rawPacket);
+                        accPacket->setMagicFour(bytes(serializedData.begin(), serializedData.begin()+4));
+                        accPacket->setJsonString(jsonString);
+
+                        accPacket->setSrcPort(udp.sport());
+                        accPacket->setDstPort(udp.dport());
+                        accPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(),
+                                         (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
+                        storage->addPacket(accPacket);
+
+                        if(_whichPacketWanted == SniffingPackets::Accept)
+                            MiTMAttack::incrementSniffed();
+
+                        break;
+                    }
+                    case 0x40: //unconfirmed Up
+                    case 0x60: //unconfirmed Down
+                    case 0x80: //confirmed Up
+                    case 0xA0: //confirmed Down
+                    {
+                        writeLog(Logger::MiTM, "received Data packet");
+                        std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
+                        if(rawPacket.front() == 0x40)
+                        {
+                            writeLog(Logger::MiTM, "Message type: UnconfirmedUp");
+                            dataPacket->setEui64(bytes(serializedData.begin() +4, serializedData.begin() + 12));
+                        }
+                        else if(rawPacket.front() == 0x60)
+                        {
+                            writeLog(Logger::MiTM, "Message type: UnconfirmedDown");
+                        }
+
+                        dataPacket->setRawData(rawPacket);
+                        dataPacket->setMagicFour(bytes(serializedData.begin(), serializedData.begin()+4));
+
+                        dataPacket->setSrcPort(udp.sport());
+                        dataPacket->setDstPort(udp.dport());
+                        dataPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(),
+                                          (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
+                        dataPacket->setJsonString(jsonString); // check if can be after deserialization
+
+                        dataPacket->deserialize();
+                        storage->addPacket(dataPacket);
+
+                        if(_whichPacketWanted == SniffingPackets::Data)
+                            MiTMAttack::incrementSniffed();
+
+                        break;
+                    }
+                    default:
+                    {
+                        writeLog(Logger::MiTM,"unknown packet type");
+                        break;
+                    }
+                    }
+
+                }else
+                {
+                    writeLog(Logger::MiTM,"Error decoding base64");
+                }
+            }
 
         }
 
     }
-
-    std::cout << std::endl;
-    std::cout << std::endl;
 
     return MiTMAttack::checkSniffedNumber();
 }
@@ -214,14 +230,14 @@ Lorawan_result MiTMAttack::sniffing(std::string interface, std::string filter)
 bool MiTMAttack::checkSniffedNumber()
 {
 
-    std::cout << "(check) WantedPacket = " << std::to_string(MiTMAttack::_wantedPacket) << std::endl;
-    std::cout << "(check) SniffedPacket = " << std::to_string(MiTMAttack::_sniffedPacket) << std::endl;
+    writeLog(Logger::MiTM,"(check) WantedPacket = " + std::to_string(MiTMAttack::_wantedPacket));
+    writeLog(Logger::MiTM,"(check) SniffedPacket = " + std::to_string(MiTMAttack::_sniffedPacket));
     return !(MiTMAttack::_wantedPacket == MiTMAttack::_sniffedPacket);
 }
 
 void MiTMAttack::incrementSniffed()
 {
-    std::cout << "incremented sniffed and wanted packet counter" <<std::endl;
+    writeLog(Logger::MiTM,"incremented sniffed and wanted packet counter");
     MiTMAttack::_sniffedPacket +=1;
 }
 

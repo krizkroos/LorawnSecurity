@@ -25,7 +25,8 @@ enum class Lorawan_result
     ErrorSerialize,
     ErrorCalcMIC,
     ErrorCreatingPacket,
-    WrongLogLevel
+    WrongLogLevel,
+    ErrorLogging
 };
 
 typedef unsigned char byte;
