@@ -11,10 +11,13 @@ int MiTMAttack::_sniffedPacket = 0;
 SniffingPackets MiTMAttack::_whichPacketWanted = SniffingPackets::Data;
 
 
-MiTMAttack::MiTMAttack(int wantedPacket, SniffingPackets whichPacketWanted)
+MiTMAttack::MiTMAttack(int wantedPacket, SniffingPackets whichPacketWanted, std::string filter, std::string interface)
 {
     MiTMAttack::_wantedPacket = wantedPacket;
     MiTMAttack::_whichPacketWanted = whichPacketWanted;
+
+    _filter = filter;
+    _interface =interface;
 
 }
 
@@ -28,7 +31,12 @@ Lorawan_result MiTMAttack::start()
     writeLog(Logger::MiTM,"start MiTM prerequisite");
     Lorawan_result result = Lorawan_result::Success;
 
-    result = sniffing("wlan0", "udp port 1700");
+    if(_interface.empty() || _filter.empty())
+    {
+        writeLog(Logger::MiTM,"MiTM parameters are not provided");
+        return Lorawan_result::ErrorTest;
+    }
+    result = sniffing(_interface, _filter);
     return result;
 
 }
@@ -38,10 +46,11 @@ Lorawan_result MiTMAttack::stop()
     return Lorawan_result::Success;
 }
 
+
 bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
 {
 
-    writeLog(Logger::MiTM, "-------------------------");
+    std::cout << "----------Next packet---------------" << std::endl;
 
     if(packet.pdu()->find_pdu<Tins::IP>())
     {
@@ -74,7 +83,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
               jsonString = Common::bytes2Str(rawJson);
               jParser.parse(jsonString);
 
-              getLorawanData= jParser.getValue(jsonKeys({"data"}),lorawanData);
+              getLorawanData= jParser.getValue(jsonKeys({"rxpk","data"}),lorawanData);
             }
             else if(serializedData.at(1) == 0x00)
             {

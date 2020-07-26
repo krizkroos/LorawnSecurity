@@ -18,6 +18,10 @@ enum class SniffingPackets
 class MiTMAttack : public TestPrerequisite
 {
 private:
+
+    std::string _filter;
+    std::string _interface;
+
     static bool deserializePacket(const Tins::Packet &packet);
     static bool checkSniffedNumber();
     static void incrementSniffed();
@@ -26,7 +30,7 @@ private:
 
 
 public:
-    MiTMAttack(int wantedPacket, SniffingPackets whichPacketWanted);
+    MiTMAttack(int wantedPacket, SniffingPackets whichPacketWanted, std::string filter, std::string interface);
     MiTMAttack();
     virtual Lorawan_result start() override;
     virtual Lorawan_result stop() override;
@@ -39,8 +43,6 @@ public:
     static int _wantedPacket;
     static int _sniffedPacket;
     static SniffingPackets _whichPacketWanted;
-
-
 
 };
 

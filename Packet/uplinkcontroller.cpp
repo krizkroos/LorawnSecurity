@@ -1,5 +1,5 @@
 #include "uplinkcontroller.h"
-#include <iostream>
+#include "Utils/logger.h"
 
 
 void UplinkController::setIP(const Tins::IP &value)
@@ -42,6 +42,6 @@ Lorawan_result UplinkController::send(std::string rawData)
 
     Tins::IP ipPacket = packetIP / Tins::UDP(dstPort, srcPort) / Tins::RawPDU(rawData);
     sender.send(ipPacket, "wlan0");
-    std::cout << "after sending packet with IP.id = " << std::to_string(packetIP.id()) << std::endl;
+    writeLog(Logger::Packet,"after sending packet with IP.id = " + std::to_string(packetIP.id()));
     return Lorawan_result::Success;
 }

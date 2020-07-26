@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <sys/time.h>
+
 #include <iomanip>
 
 #include "common.h"
@@ -76,10 +76,16 @@ Lorawan_result Logger::write(unsigned long long level, std::string file, std::st
     FILE* outfile;
 
     if((_currentLevel & level) != level)
+    {
+        std::cout << "Current level mismatches!" << std::endl;
         return Lorawan_result::WrongLogLevel;
+    }
 
     if(_filename.empty())
+    {
+        std::cout << "Log file name is empty!" << std::endl;
         return Lorawan_result::Error;
+    }
 
 
     outfile = fopen(_filename.c_str(), "a");
@@ -98,7 +104,7 @@ Lorawan_result Logger::write(unsigned long long level, std::string file, std::st
     ss << std::string("\n");
     ss << getTime() << std::string(" | ");
 
-    ss << std::setw(11) << std::left << std::string("LEVEL: " + std::to_string(level)) << " | ";
+    ss << std::setw(11) << std::left << std::string("LEVEL: ") << parseLevel(level) << " | ";
 
     ss << std::setw(12) << std::left << std::string(file + " :" + function + ": " + std::to_string(line)) << ":  ";
 
@@ -107,7 +113,7 @@ Lorawan_result Logger::write(unsigned long long level, std::string file, std::st
     std::string newLine = ss.str();
     fprintf(outfile, "%s\n", newLine.c_str());
 
-    std::cout << newLine;
+    std::cout << newLine << std::endl;
 
     fclose(outfile);
 
@@ -124,6 +130,37 @@ Lorawan_result Logger::writeHex(unsigned long long level, std::string file, std:
     prepContent += "\n";
 
     return Logger::write(level,file, function,line,prepContent);
+
+}
+
+std::string Logger::parseLevel(unsigned long long level)
+{
+    switch (level) {
+
+    case Logger::Device:
+        return "Device";
+    case Logger::Packet:
+        return "Packet";
+    case Logger::LorawanTest:
+       return "LorawanTest";
+    case Logger::MiTM:
+        return "MiTM";
+    case Logger::Security:
+        return "Security";
+    case Logger::Common:
+        return "Common";
+    case Logger::BruteforcingMIC:
+        return "BruteforcingMIC";
+    case Logger::JSON:
+        return "JSON";
+    case Logger::PacketData:
+        return "PacketData";
+    case Logger::RawData:
+        return "RawData";
+    default:
+        return "Unknown";
+
+    }
 
 }
 

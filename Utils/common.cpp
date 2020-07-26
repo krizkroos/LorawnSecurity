@@ -1,11 +1,11 @@
 #include "common.h"
+#include "logger.h"
 
 #include <sstream>
 #include <iomanip>
 #include <memory>
 #include <stdio.h>
 #include <string.h>
-#include <iostream>
 #include <map>
 //OPENSSL
 #include <openssl/evp.h>
@@ -358,8 +358,7 @@ Lorawan_result Common::testDecodingEncoding()
                                                 };
     for(auto& value: loraBase64)
     {
-        std::cout << std::endl;
-        std::cout << "-------------------"<< std::endl;
+        writeLog(Logger::Common,"-------------------");
         std::string data = value.first;
         bytes refDecoded = value.second;
         bytes encoded = Common::str2Bytes(data);
@@ -367,26 +366,26 @@ Lorawan_result Common::testDecodingEncoding()
 
         if(Common::decodeBase64(encoded, calcDecoded) == Lorawan_result::Success)
         {
-            std::cout << "string: " << data <<std::endl;
-            std::cout << "reference decoded: "<< Common::bytes2HexStr(refDecoded) <<std::endl;
-            std::cout << "decoded bytes:     "<< Common::bytes2HexStr(calcDecoded) <<std::endl;
+            writeLog(Logger::Common,"string: " + data);
+            writeLog(Logger::Common,"reference decoded: " + Common::bytes2HexStr(refDecoded));
+            writeLog(Logger::Common, "decoded bytes:     " +  Common::bytes2HexStr(calcDecoded));
             bytes myEncoded;
 
 
             if(Common::encodeBase64(calcDecoded,myEncoded) == Lorawan_result::Success)
             {
-                std::cout << "reference encoded: "<< Common::bytes2HexStr(encoded) <<std::endl;
-                std::cout << "encoded bytes:     "<< Common::bytes2HexStr(myEncoded) <<std::endl;
+                writeLog(Logger::Common,"reference encoded: " + Common::bytes2HexStr(encoded));
+                writeLog(Logger::Common,"encoded bytes:     " + Common::bytes2HexStr(myEncoded));
             }
             else
             {
-                std::cout << "string cannot encode" <<std::endl;
+                writeLog(Logger::Common,"string cannot encode");
                 return Lorawan_result::ErrorTest;
             }
         }
         else
         {
-            std::cout << "string cannot decode" <<std::endl;
+            writeLog(Logger::Common,"string cannot decode");
             return Lorawan_result::ErrorTest;
         }
     }
@@ -408,20 +407,19 @@ Lorawan_result Common::testBigAndLittleEndian()
         bytes bigEndian{};
         bytes littleEndian = value;
 
-        std::cout << std::endl;
-        std::cout << "----------------" << std::endl;
+        writeLog(Logger::Common,"----------------");
 
         rv = Common::convertToBigEndian(littleEndian, bigEndian);
         if(rv == Lorawan_result::Success)
         {
-            std::cout << "littleEnd Value:" << Common::bytes2HexStr(littleEndian) << std::endl;
-            std::cout << "bigEndian Value:" << Common::bytes2HexStr(bigEndian) << std::endl;
+            writeLog(Logger::Common,"littleEnd Value:" + Common::bytes2HexStr(littleEndian));
+            writeLog(Logger::Common,"bigEndian Value:" + Common::bytes2HexStr(bigEndian));
 
             littleEndian.clear();
             rv = Common::convertToLittleEndian(bigEndian, littleEndian);
             if (rv == Lorawan_result::Success)
             {
-                std::cout << "littleEnd Value:" << Common::bytes2HexStr(littleEndian) << std::endl;
+                writeLog(Logger::Common,"littleEnd Value:" + Common::bytes2HexStr(littleEndian));
             }
 
         }

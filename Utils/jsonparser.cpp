@@ -24,14 +24,16 @@ std::string JsonParser::getJson()
 //"{\"rxpk\":[{\"tmst\":2536840083,\"time\":\"2020-07-10T09:29:36.255849Z\",\"chan\":1,\"rfch\":1,\"freq\":868.300000,\"stat\":1,\"modu\":\"LORA\",\"datr\":\"SF7BW125\",\"codr\":\"4/5\",\"lsnr\":8.5,\"rssi\":-31,\"size\":23,\"data\":\"AKbtAtB+1bNwgdYfAAujBACIJ6iTMRQ=\"}]}";
 
 //
-//"{\"txpk\":\{\"imme\":false,\"tmst\":1292149667,\"freq\":868.1,\"rfch\":0,\"powe\":14,\"modu\":\"LORA\",\"datr\":\"SF7BW125\",\"codr\":\"4/5\",\"ipol\":true,\"size\":33,//\"ncrc\":true,\"data\":\"IGdvKRC7I5CtcvV+tYi30VLgOlHHPGINKwBV8SHFuQrp\"}}"
+//"{\"txpk\":{\"imme\":false,\"tmst\":1292149667,\"freq\":868.1,\"rfch\":0,\"powe\":14,\"modu\":\"LORA\",\"datr\":\"SF7BW125\",\"codr\":\"4/5\",\"ipol\":true,\"size\":33,\"ncrc\":true,\"data\":\"IGdvKRC7I5CtcvV+tYi30VLgOlHHPGINKwBV8SHFuQrp\"}}"
 
 
 Lorawan_result JsonParser::parse(std::string json)
 {
     if(map.Parse(json.c_str()).HasParseError())
+    {
+        writeLog(Logger::JSON, "parsing has error: " + std::to_string(map.GetParseError()));
         return Lorawan_result::ErrorParsing;
-
+    }
     return Lorawan_result::Success;
 }
 
@@ -183,7 +185,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
 
             if(!map[currentKey.c_str()].IsString())
             {
-               writeLog(Logger::JSON,"not a string but provided only one key");
+               writeLog(Logger::JSON,"not a string value but provided only one key");
                return Lorawan_result::NoValueAvailable;
             }
 
@@ -193,14 +195,22 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
         }
         else if(key.size() == 2)
         {
-            if(!map[currentKey.c_str()].IsArray())
-            {
-                writeLog(Logger::JSON,"recurency not available");
-                return Lorawan_result::NoValueAvailable;
-            }
-
             std::string rootKey = key.at(0);
             currentKey = key.at(1);
+
+            if(map[rootKey.c_str()].IsObject())
+            {
+                writeLog(Logger::JSON, "Inside Document is object type");
+
+                if(!map[rootKey.c_str()][currentKey.c_str()].IsString())
+                {
+                    writeLog(Logger::JSON,"not a string value / two keys");
+                    return Lorawan_result::NoValueAvailable;
+                }
+                value = std::string(map[rootKey.c_str()][currentKey.c_str()].GetString());
+                return Lorawan_result::Success;
+            }
+
             return getValueFromArrayWithKey(rootKey,currentKey,value);
 
         }
@@ -235,7 +245,7 @@ Lorawan_result JsonParser::getValue(std::vector<std::string> key, std::string &v
     }
     else
     {
-        writeLog(Logger::JSON,"unsupported json type");
+        writeLog(Logger::JSON,"unsupported json type" + std::to_string(map.GetType()));
         return Lorawan_result::NoValueAvailable;
     }
 

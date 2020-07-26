@@ -1,7 +1,8 @@
 #include "datapacket.h"
 #include "Utils/common.h"
 
-#include <iostream>
+#include "Utils/logger.h"
+
 
 bytes DataPacket::getFrameCounter() const
 {
@@ -113,7 +114,7 @@ Lorawan_result DataPacket::serialialize()
     byte mhdr{0x40};
     if(rawPacket.empty())
     {
-        std::cout << "raw packet is empty, default mhdr" << std::endl;
+        writeLog(Logger::Packet,"raw packet is empty, default mhdr");
     }
     else
         mhdr = rawPacket.front();

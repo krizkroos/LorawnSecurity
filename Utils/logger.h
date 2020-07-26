@@ -1,6 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <sys/time.h>
 #include "tins/tins.h"
 #include <string>
 #include "defineLorawan.h"
@@ -21,6 +22,7 @@ public:
         LorawanTest,
         MiTM,
         Security,
+        Common,
         BruteforcingMIC,
         JSON,
         PacketData,
@@ -37,6 +39,7 @@ public:
 
 private:
     static std::string getTime();
+    static std::string parseLevel(unsigned long long level);
 };
 
 #endif // LOGGER_H

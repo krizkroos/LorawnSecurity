@@ -1,5 +1,5 @@
 #include "packetstorage.h"
-#include <iostream>
+#include "Utils/logger.h"
 
 /* Null, because instance will be initialized on demand. */
 PacketStorage* PacketStorage::instance = nullptr;
@@ -24,11 +24,11 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinRequestPacket> packe
     if(packet->getType() == MsgType::JoinRequest)
     {
         request.emplace_back(packet);
-        std::cout << "added request packet" << std::endl;
+        writeLog(Logger::PacketData,"added request packet");
     }
     else
     {
-        std::cout << "unknown packet type" << std::endl;
+        writeLog(Logger::PacketData,"unknown packet type");
         rv = Lorawan_result::ErrorAddPacket;
 
     }
@@ -43,11 +43,11 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinAcceptPacket> packet
     if(packet->getType() == MsgType::JoinAccept)
     {
         accept.emplace_back(packet);
-        std::cout << "added accept packet" << std::endl;
+        writeLog(Logger::PacketData,"added accept packet");
     }
     else
     {
-        std::cout << "unknown packet type" << std::endl;
+        writeLog(Logger::PacketData,"unknown packet type");
         rv = Lorawan_result::ErrorAddPacket;
 
     }
@@ -62,11 +62,11 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<DataPacket> packet)
     if(packet->getType() == MsgType::MACPayload)
     {
         macPayload.emplace_back(packet);
-        std::cout << "added data packet" << std::endl;
+        writeLog(Logger::PacketData,"added data packet");
     }
     else
     {
-        std::cout << "unknown packet type" << std::endl;
+        writeLog(Logger::PacketData,"unknown packet type");
         rv = Lorawan_result::ErrorAddPacket;
 
     }

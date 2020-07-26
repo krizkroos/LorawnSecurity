@@ -1,6 +1,6 @@
 #include "lorawantest.h"
 
-#include <iostream>
+#include "Utils/logger.h"
 
 std::shared_ptr<LorawanDevice> LorawanTest::getTestDevice() const
 {
@@ -24,7 +24,7 @@ Lorawan_result LorawanTest::addPrerequisite(std::shared_ptr<TestPrerequisite> p)
     }
     else
     {
-        std::cout << "Error addPrerequisite"<< std::endl;
+        writeLog(Logger::LorawanTest,"Error addPrerequisite");
         return Lorawan_result::Error;
     }
 

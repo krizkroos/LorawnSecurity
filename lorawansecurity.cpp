@@ -15,7 +15,7 @@ Lorawan_result LorawanSecurity::addTest(std::shared_ptr<LorawanTest> test)
     }
     else
     {
-        std::cout << "Error addTest"<< std::endl;
+        writeLog(Logger::Common,"Error addTest");
         return Lorawan_result::Error;
     }
 
@@ -25,7 +25,7 @@ Lorawan_result LorawanSecurity::addTest(std::shared_ptr<LorawanTest> test)
 Lorawan_result LorawanSecurity::setUpTestParams(TestParams &params)
 {
     _testParams = params;
-    Logger logger("lorawan.log", Logger::JSON | Logger::RawData | Logger::MiTM);
+
     return Lorawan_result::Success;
 }
 
@@ -37,22 +37,22 @@ Lorawan_result LorawanSecurity::startPrerequisites()
     std::cout <<"----------------- Starting test prerequisites ----------------"<< std::endl;
     for(auto &test : _test)
     {
-        std::cout << "Test describtion : " + test->getDescription() << std::endl;
+        writeLog(Logger::Common, "Test describtion : " + test->getDescription());
 
         auto &prerequisite = test->getPrerequisite();
 
         if(prerequisite.size() == 0) // vector size
         {
-            std::cout << "No prerequisite required"<< std::endl;
+            writeLog(Logger::Common,"No prerequisite required");
         }
         for(auto &prereq : prerequisite)
         {
-            std::cout << "Prerequisite : " + prereq->getName() << std::endl;
+            writeLog(Logger::Common,"Prerequisite : " + prereq->getName());
 
             result = prereq->start();
             if(result != Lorawan_result::Success)
             {
-                std::cout << "Error starting condition"<< std::endl;
+                writeLog(Logger::Common, "Error starting condition");
                 return result;
             }
             else
@@ -70,10 +70,12 @@ Lorawan_result LorawanSecurity::launchTest()
     Lorawan_result result = Lorawan_result::Success;
     for(auto &test : _test)
     {
-        std::cout << "Test describtion : " + test->getDescription() << std::endl;
-        if(test->launch() != Lorawan_result::Success)
+        writeLog(Logger::Common,"Test describtion : " + test->getDescription());
+        result = test->launch();
+        if(result != Lorawan_result::Success)
         {
-            std::cout << "starting test failed" << std::endl;
+            writeLog(Logger::Common,"starting test failed");
+            return result;
         }
     }
     return result;

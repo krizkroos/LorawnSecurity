@@ -3,7 +3,7 @@
 #include "Utils/common.h"
 #include "Utils/jsonparser.h"
 
-#include <iostream>
+#include "Utils/logger.h"
 #include <chrono>
 #include <thread>
 
@@ -56,12 +56,12 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
 
     Tins::IP refIP = dataPkt->getPacketIP();
     uplink.setIP(refIP);
-    std::cout << "packet is based on IP with id = " << std::to_string(refIP.id()) << std::endl;
-    std::cout << "sending guard packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())) << std::endl;
+    writeLog(Logger::BruteforcingMIC,"packet is based on IP with id = " + std::to_string(refIP.id()));
+    writeLog(Logger::BruteforcingMIC,"sending guard packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())));
 
     if(send(copyPacket.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
     {
-        std:: cout << "error sending guard packet!" << std::endl;
+        writeLog(Logger::BruteforcingMIC,"error sending guard packet!");
     }
 
     return Lorawan_result::Success;
@@ -69,8 +69,8 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
 
 Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCnt)
 {
-    std::cout << "Calculating new MIC value" << std::endl;
-    std::cout << "previous value of MIC: " << Common::bytes2HexStr(dataPkt.getMIC()) << std::endl;
+    writeLog(Logger::BruteforcingMIC,"Calculating new MIC value");
+    writeLog(Logger::BruteforcingMIC,"previous value of MIC: " + Common::bytes2HexStr(dataPkt.getMIC()) );
 
     bytes initBlock{};
     bytes _localFCnt{};
@@ -97,7 +97,7 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCn
 
     if(frameCounter.empty())
     {
-        std::cout << "Empty frame counter" << std::endl;
+        writeLog(Logger::BruteforcingMIC,"Empty frame counter");
         return Lorawan_result::ErrorCalcMIC;
     }
     _localFCnt.emplace_back(0x00);
@@ -119,7 +119,7 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCn
         dosCount += MAX_FCNT_GAP;
 
         _localFCnt = Common::ulong2Bytes(dosCount);
-        std::cout << "changed value of FCnt: " << Common::bytes2HexStr(_localFCnt) << std::endl;
+        writeLog(Logger::BruteforcingMIC,"changed value of FCnt: " + Common::bytes2HexStr(_localFCnt));
     }
 
     bytes littleEndianFCnt{};
@@ -157,13 +157,13 @@ Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCn
 
     if(Common::calculate_cmac(key,message, calcCMAC) != Lorawan_result::Success)
     {
-        std::cout << "Error calculating CMAC" << std::endl;
+        writeLog(Logger::BruteforcingMIC,"Error calculating CMAC");
         return Lorawan_result::ErrorCalcMIC;
     }
 
     dataPkt.setMIC(bytes(calcCMAC.begin(), calcCMAC.begin() + 4));
 
-    std::cout << "Finished calculating MIC" << std::endl;
+    writeLog(Logger::BruteforcingMIC,"Finished calculating MIC");
     return Lorawan_result::Success;
 }
 
@@ -200,12 +200,12 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
 
     Tins::IP refIP = dataPkt->getPacketIP();
     uplink.setIP(refIP);
-    std::cout << "packet is based on IP with id = " << std::to_string(refIP.id()) << std::endl;
-    std::cout << "sending guard packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())) << std::endl;
+    writeLog(Logger::BruteforcingMIC,"packet is based on IP with id = " + std::to_string(refIP.id()));
+    writeLog(Logger::BruteforcingMIC,"sending guard packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())));
 
     if(send(copyPacket.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
     {
-        std:: cout << "error sending guard packet!" << std::endl;
+        writeLog(Logger::BruteforcingMIC,"error sending guard packet!");
     }
 
     return Lorawan_result::Success;
@@ -222,9 +222,10 @@ Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<LorawanPacket> pack
 
     return Lorawan_result::Success;
 }
+
 Lorawan_result BruteforcingMIC::launch()
 {
-    PacketStorage *storage = PacketStorage::getInstance();
+ PacketStorage *storage = PacketStorage::getInstance();
 
     std::vector<std::shared_ptr<JoinRequestPacket> > requests = storage->getRequestPacket();
     std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
@@ -238,7 +239,7 @@ Lorawan_result BruteforcingMIC::launch()
             return Lorawan_result::ErrorTestSetUp;
         }
 
-            std::shared_ptr<DataPacket> firstPayload = macPayloads.at(0); // based on number
+            std::shared_ptr<DataPacket> firstPayload = macPayloads.back(); // based on number
 
             if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
             {
@@ -250,10 +251,9 @@ Lorawan_result BruteforcingMIC::launch()
                 return Lorawan_result::ErrorTest;
             }
 
-
     } else
     {
-        std::cout << "no payload packets" << std::endl;
+        writeLog(Logger::BruteforcingMIC | Logger::LorawanTest,"no payload packets");
         return Lorawan_result::ErrorTest;
     }
 
@@ -292,8 +292,8 @@ BruteforcingMIC::createJsonToSend(bytes rawPacket, std::string refJson, std::str
 
     jsonToSend = jParser.getJson();
 
-    std::cout << "ref: " << refJson << std::endl;
-    std::cout << "changed: " << jsonToSend << std::endl;
+    writeLog(Logger::BruteforcingMIC,"ref: " + refJson);
+    writeLog(Logger::BruteforcingMIC," changed: " + jsonToSend );
 
 
     return Lorawan_result::Success;
@@ -311,7 +311,7 @@ Lorawan_result BruteforcingMIC::send(bytes magicFour, bytes eui64, std::string j
 
     std::string dataToSend = Common::bytes2Str(rawData);
 
-    std::cout << "data to send: \n" << dataToSend << std::endl;
+    writeLog(Logger::BruteforcingMIC, "data to send: \n" + dataToSend);
 
     return uplink.send(dataToSend);
 }
@@ -326,48 +326,36 @@ Lorawan_result BruteforcingMIC::printPackets()
 {
     PacketStorage* storage = PacketStorage::getInstance();
 
-    std::cout << std::endl;
-    std::cout << "Able to perform bruteforcing attack with below packets:" << std::endl;
+    writeLog(Logger::BruteforcingMIC,"Able to perform bruteforcing attack with below packets:");
 
     std::vector<std::shared_ptr<JoinRequestPacket> > requestPackets = storage->getRequestPacket();
     std::vector<std::shared_ptr<JoinAcceptPacket> > acceptPackets = storage->getAcceptPacket();
     std::vector<std::shared_ptr<DataPacket> > dataPackets = storage->getMacPayloadPacket();
 
-    std::cout << "Available packets:" << std::endl;
-    std::cout << "Requests:" << std::to_string(requestPackets.size()) << std::endl;
-    std::cout << "Accepts:" << std::to_string(acceptPackets.size()) << std::endl;
-    std::cout << "Datas:" << std::to_string(dataPackets.size()) << std::endl;
-    std::cout << std::endl;
+    writeLog(Logger::BruteforcingMIC,"Available packets:");
+    writeLog(Logger::BruteforcingMIC,"Requests:" + std::to_string(requestPackets.size()));
+    writeLog(Logger::BruteforcingMIC, "Accepts:" + std::to_string(acceptPackets.size()));
+    writeLog(Logger::BruteforcingMIC,"Datas:" + std::to_string(dataPackets.size()));
+
 
     for(auto &request: requestPackets)
     {
-        std::cout << "next request packet:" << std::endl;
-        std::cout << Common::bytes2HexStr(request->getRawData()) << std::endl;
-        std::cout << std::endl;
+        writeLog(Logger::BruteforcingMIC,"next request packet:");
+        writeLog(Logger::BruteforcingMIC,Common::bytes2HexStr(request->getRawData()));
     }
 
-    std::cout << std::endl;
-    std::cout << std::endl;
 
     for(auto &accept: acceptPackets)
     {
-        std::cout << "next accept packet:" << std::endl;
-        std::cout << Common::bytes2HexStr(accept->getRawData()) << std::endl;
-        std::cout << std::endl;
+        writeLog(Logger::BruteforcingMIC,"next accept packet:");
+        writeLog(Logger::BruteforcingMIC,Common::bytes2HexStr(accept->getRawData()));
     }
-
-    std::cout << std::endl;
-    std::cout << std::endl;
 
     for(auto &data: dataPackets)
     {
-        std::cout << "next data packet:" << std::endl;
-        std::cout << Common::bytes2HexStr(data->getRawData()) << std::endl;
-        std::cout << std::endl;
+        writeLog(Logger::BruteforcingMIC,"next data packet:");
+        writeLog(Logger::BruteforcingMIC,Common::bytes2HexStr(data->getRawData()));
     }
-
-    std::cout << std::endl;
-    std::cout << std::endl;
 
     return Lorawan_result::Success;
 }

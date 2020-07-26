@@ -12,17 +12,16 @@ Lorawan_result LorawanTester::testMIC()
 {
     LorawanSecurity loraSec;
     TestParams params;
-
-    std::cout << "testing MIC" << std::endl;
-
-
     params.setLogFileName("lorawan-test.log");
+
+    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::MiTM | Logger::LorawanTest);
+    writeLog(Logger::LorawanTest, "testing MIC");
+
+
     loraSec.setUpTestParams(params);
 
-
-
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
-    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(10, SniffingPackets::Data);
+    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(4, SniffingPackets::Data,"udp dst port 1700","wlan0");
     mitm->setName("MiTM");
     std::shared_ptr<BruteforcingMIC> testOne = std::make_shared<BruteforcingMIC>();
 
@@ -31,25 +30,25 @@ Lorawan_result LorawanTester::testMIC()
 
     if(testOne->addPrerequisite(mitm) != Lorawan_result::Success)
     {
-        std::cout << "Error adding prerequisite" << std::endl;
+        writeLog(Logger::LorawanTest,"Error adding prerequisite");
         return Lorawan_result::ErrorPrerequisite;
     }
 
     if(loraSec.addTest(testOne) != Lorawan_result::Success)
     {
-        std::cout << "Error adding test" << std::endl;
+        writeLog(Logger::LorawanTest,"Error adding test");
         return Lorawan_result::ErrorTest;
     }
 
     if(loraSec.startPrerequisites()  != Lorawan_result::Success)
     {
-        std::cout << "Error starting prerequisite" << std::endl;
+        writeLog(Logger::LorawanTest,"Error starting prerequisite");
         return Lorawan_result::ErrorPrerequisite;
     }
 
     if(loraSec.launchTest()  != Lorawan_result::Success)
     {
-        std::cout << "Error launching test" << std::endl;
+        writeLog(Logger::LorawanTest,"Error launching test");
         return Lorawan_result::ErrorTest;
     }
 
