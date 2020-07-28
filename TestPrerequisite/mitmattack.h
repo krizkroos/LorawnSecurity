@@ -7,10 +7,12 @@
 
 #include "tins/tins.h"
 
+#include <map>
 
 enum class SniffingPackets
 {
-    Data,
+    Uplink,
+    Downlink,
     Request,
     Accept
 };
@@ -30,7 +32,7 @@ private:
 
 
 public:
-    MiTMAttack(int wantedPacket, SniffingPackets whichPacketWanted, std::string filter, std::string interface);
+    MiTMAttack(std::map<SniffingPackets, int> wantedPacket, std::string filter, std::string interface);
     MiTMAttack();
     virtual Lorawan_result start() override;
     virtual Lorawan_result stop() override;
@@ -40,10 +42,13 @@ public:
     Lorawan_result sendPacket(LorawanPacket packet);
     Lorawan_result sniffing(std::string interface, std::string filter);
 
-    static int _wantedPacket;
-    static int _sniffedPacket;
-    static SniffingPackets _whichPacketWanted;
+    static int _wantedPacketNum;
+    static int _sniffedPacketNum;
+    static SniffingPackets _currentWantedPacket;
+    static std::map<SniffingPackets, int> _wantedPacket;
+    static std::map<SniffingPackets, int>::iterator _nextWantedPacket;
 
+    static void setWhichPacketWanted(const SniffingPackets &whichPacketWanted);
 };
 
 #endif // MITMATTACK_H

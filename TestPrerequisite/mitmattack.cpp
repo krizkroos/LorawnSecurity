@@ -6,15 +6,33 @@
 #include "defineLorawan.h"
 
 #include "Utils/logger.h"
-int MiTMAttack::_wantedPacket = 0;
-int MiTMAttack::_sniffedPacket = 0;
-SniffingPackets MiTMAttack::_whichPacketWanted = SniffingPackets::Data;
+int MiTMAttack::_wantedPacketNum = 0;
+int MiTMAttack::_sniffedPacketNum = 0;
+SniffingPackets MiTMAttack::_currentWantedPacket = SniffingPackets::Uplink;
+
+std::map<SniffingPackets, int> MiTMAttack::_wantedPacket = std::map<SniffingPackets, int>();
+std::map<SniffingPackets, int>::iterator MiTMAttack::_nextWantedPacket = std::map<SniffingPackets, int>::iterator();
 
 
-MiTMAttack::MiTMAttack(int wantedPacket, SniffingPackets whichPacketWanted, std::string filter, std::string interface)
+MiTMAttack::MiTMAttack(std::map<SniffingPackets, int> wantedPacket, std::string filter, std::string interface)
 {
     MiTMAttack::_wantedPacket = wantedPacket;
-    MiTMAttack::_whichPacketWanted = whichPacketWanted;
+
+    _nextWantedPacket = _wantedPacket.begin();
+
+
+    _currentWantedPacket = _nextWantedPacket->first;
+    _wantedPacketNum = _nextWantedPacket->second;
+
+    if(MiTMAttack::_currentWantedPacket == SniffingPackets::Uplink)
+    {
+        writeLog(Logger::MiTM, "(constructor) Looking for Uplink packets");
+    }
+    else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
+    {
+         writeLog(Logger::MiTM, "(constructor) Looking for Downlink packets");
+    }
+
 
     _filter = filter;
     _interface =interface;
@@ -36,6 +54,7 @@ Lorawan_result MiTMAttack::start()
         writeLog(Logger::MiTM,"MiTM parameters are not provided");
         return Lorawan_result::ErrorTest;
     }
+
     result = sniffing(_interface, _filter);
     return result;
 
@@ -140,7 +159,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
 
                         storage->addPacket(reqPacket);
 
-                        if(_whichPacketWanted == SniffingPackets::Request)
+                        if(_currentWantedPacket == SniffingPackets::Request)
                             MiTMAttack::incrementSniffed();
 
                         break;
@@ -159,27 +178,16 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                                          (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
                         storage->addPacket(accPacket);
 
-                        if(_whichPacketWanted == SniffingPackets::Accept)
+                        if(_currentWantedPacket == SniffingPackets::Accept)
                             MiTMAttack::incrementSniffed();
 
                         break;
                     }
-                    case 0x40: //unconfirmed Up
                     case 0x60: //unconfirmed Down
-                    case 0x80: //confirmed Up
                     case 0xA0: //confirmed Down
                     {
-                        writeLog(Logger::MiTM, "received Data packet");
+                        writeLog(Logger::MiTM, "received Downlink Data packet");
                         std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
-                        if(rawPacket.front() == 0x40)
-                        {
-                            writeLog(Logger::MiTM, "Message type: UnconfirmedUp");
-                            dataPacket->setEui64(bytes(serializedData.begin() +4, serializedData.begin() + 12));
-                        }
-                        else if(rawPacket.front() == 0x60)
-                        {
-                            writeLog(Logger::MiTM, "Message type: UnconfirmedDown");
-                        }
 
                         dataPacket->setRawData(rawPacket);
                         dataPacket->setMagicFour(bytes(serializedData.begin(), serializedData.begin()+4));
@@ -193,7 +201,30 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                         dataPacket->deserialize();
                         storage->addPacket(dataPacket);
 
-                        if(_whichPacketWanted == SniffingPackets::Data)
+                        if(_currentWantedPacket == SniffingPackets::Downlink)
+                            MiTMAttack::incrementSniffed();
+                        break;
+                    }
+
+                    case 0x40: //unconfirmed Up
+                    case 0x80: //confirmed Up
+                    {
+                        writeLog(Logger::MiTM, "received Uplink Data packet");
+                        std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
+
+                        dataPacket->setRawData(rawPacket);
+                        dataPacket->setMagicFour(bytes(serializedData.begin(), serializedData.begin()+4));
+                        dataPacket->setEui64(bytes(serializedData.begin() +4, serializedData.begin() + 12));
+                        dataPacket->setSrcPort(udp.sport());
+                        dataPacket->setDstPort(udp.dport());
+                        dataPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(),
+                                          (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
+                        dataPacket->setJsonString(jsonString); // check if can be after deserialization
+
+                        dataPacket->deserialize();
+                        storage->addPacket(dataPacket);
+
+                        if(_currentWantedPacket == SniffingPackets::Uplink)
                             MiTMAttack::incrementSniffed();
 
                         break;
@@ -236,19 +267,70 @@ Lorawan_result MiTMAttack::sniffing(std::string interface, std::string filter)
     return Lorawan_result::Success;
 }
 
+void MiTMAttack::setWhichPacketWanted(const SniffingPackets &whichPacketWanted)
+{
+    _currentWantedPacket = whichPacketWanted;
+}
+
 bool MiTMAttack::checkSniffedNumber()
 {
+    
+    writeLog(Logger::MiTM,"(check) WantedPacket = " + std::to_string(MiTMAttack::_wantedPacketNum));
+    writeLog(Logger::MiTM,"(check) SniffedPacket = " + std::to_string(MiTMAttack::_sniffedPacketNum));
+    if(MiTMAttack::_currentWantedPacket == SniffingPackets::Uplink)
+    {
+        writeLog(Logger::MiTM, " (check) Looking for Uplink packets");
+    }
+    else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
+    {
+         writeLog(Logger::MiTM, "(check) Looking for Downlink packets");
+    }
 
-    writeLog(Logger::MiTM,"(check) WantedPacket = " + std::to_string(MiTMAttack::_wantedPacket));
-    writeLog(Logger::MiTM,"(check) SniffedPacket = " + std::to_string(MiTMAttack::_sniffedPacket));
-    return !(MiTMAttack::_wantedPacket == MiTMAttack::_sniffedPacket);
+
+    if(MiTMAttack::_wantedPacketNum == MiTMAttack::_sniffedPacketNum)
+    {
+        MiTMAttack::_nextWantedPacket++;
+
+        if(MiTMAttack::_nextWantedPacket != MiTMAttack::_wantedPacket.end())
+        {
+            writeLog(Logger::MiTM, "Looking for next wanted packet");
+
+            MiTMAttack::_currentWantedPacket = MiTMAttack::_nextWantedPacket->first;
+            MiTMAttack::_wantedPacketNum = MiTMAttack::_nextWantedPacket->second;
+
+            if(MiTMAttack::_currentWantedPacket == SniffingPackets::Uplink)
+            {
+                writeLog(Logger::MiTM, "Looking for Uplink packets");
+            }
+            else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
+            {
+                 writeLog(Logger::MiTM, "Looking for Downlink packets");
+            }
+
+            MiTMAttack::_sniffedPacketNum = 0;
+
+            return true;
+        }
+    }
+
+    return !(MiTMAttack::_wantedPacketNum == MiTMAttack::_sniffedPacketNum);
 }
 
 void MiTMAttack::incrementSniffed()
 {
+    if(MiTMAttack::_currentWantedPacket == SniffingPackets::Uplink)
+    {
+        writeLog(Logger::MiTM, "Looking for Uplink packets");
+    }
+    else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
+    {
+         writeLog(Logger::MiTM, "Looking for Downlink packets");
+    }
+
     writeLog(Logger::MiTM,"incremented sniffed and wanted packet counter");
-    MiTMAttack::_sniffedPacket +=1;
+    MiTMAttack::_sniffedPacketNum +=1;
 }
+
 
 Lorawan_result MiTMAttack::arpSpoofing()
 {

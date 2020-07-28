@@ -201,11 +201,11 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
     Tins::IP refIP = dataPkt->getPacketIP();
     uplink.setIP(refIP);
     writeLog(Logger::BruteforcingMIC,"packet is based on IP with id = " + std::to_string(refIP.id()));
-    writeLog(Logger::BruteforcingMIC,"sending guard packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())));
+    writeLog(Logger::BruteforcingMIC,"sending packet with frame counter = " + std::to_string(Common::bytes2ULong(copyPacket.getFrameCounter())));
 
     if(send(copyPacket.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
     {
-        writeLog(Logger::BruteforcingMIC,"error sending guard packet!");
+        writeLog(Logger::BruteforcingMIC,"error sending death packet!");
     }
 
     return Lorawan_result::Success;
@@ -292,8 +292,8 @@ BruteforcingMIC::createJsonToSend(bytes rawPacket, std::string refJson, std::str
 
     jsonToSend = jParser.getJson();
 
-    writeLog(Logger::BruteforcingMIC,"ref: " + refJson);
-    writeLog(Logger::BruteforcingMIC," changed: " + jsonToSend );
+    writeLog(Logger::BruteforcingMIC,"ref: \n" + refJson);
+    writeLog(Logger::BruteforcingMIC," changed: \n" + jsonToSend );
 
 
     return Lorawan_result::Success;

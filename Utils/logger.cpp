@@ -77,7 +77,9 @@ Lorawan_result Logger::write(unsigned long long level, std::string file, std::st
 
     if((_currentLevel & level) != level)
     {
-        std::cout << "Current level mismatches!" << std::endl;
+        std::cout << "Current level mismatches: " << std::endl;
+        std::cout << "Current: " << _currentLevel << std::endl;
+        std::cout << "Incoming: " << level << std::endl;
         return Lorawan_result::WrongLogLevel;
     }
 
@@ -104,7 +106,7 @@ Lorawan_result Logger::write(unsigned long long level, std::string file, std::st
     ss << std::string("\n");
     ss << getTime() << std::string(" | ");
 
-    ss << std::setw(11) << std::left << std::string("LEVEL: ") << parseLevel(level) << " | ";
+    ss << std::setw(11) << std::string("LEVEL: ") << parseLevel(level) << std::left  << " | ";
 
     ss << std::setw(12) << std::left << std::string(file + " :" + function + ": " + std::to_string(line)) << ":  ";
 
@@ -157,6 +159,8 @@ std::string Logger::parseLevel(unsigned long long level)
         return "PacketData";
     case Logger::RawData:
         return "RawData";
+    case Logger::BatteryDepletion:
+        return "Battery";
     default:
         return "Unknown";
 

@@ -24,6 +24,7 @@ public:
         Security,
         Common,
         BruteforcingMIC,
+        BatteryDepletion,
         JSON,
         PacketData,
         RawData

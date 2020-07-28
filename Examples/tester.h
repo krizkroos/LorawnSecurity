@@ -16,7 +16,9 @@ class LorawanTester
 public:
     LorawanTester();
     Lorawan_result testMIC();
-    Lorawan_result testADR();
+    Lorawan_result testBatteryDeplation();
+private:
+    Lorawan_result printPackets();
 };
 
 #endif // TESTER_H
