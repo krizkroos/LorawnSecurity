@@ -18,11 +18,11 @@ MiTMAttack::MiTMAttack(std::map<SniffingPackets, int> wantedPacket, std::string 
 {
     MiTMAttack::_wantedPacket = wantedPacket;
 
-    _nextWantedPacket = _wantedPacket.begin();
+    MiTMAttack::_nextWantedPacket = MiTMAttack::_wantedPacket.begin();
 
 
-    _currentWantedPacket = _nextWantedPacket->first;
-    _wantedPacketNum = _nextWantedPacket->second;
+    MiTMAttack::_currentWantedPacket = MiTMAttack::_nextWantedPacket->first;
+    MiTMAttack::_wantedPacketNum = MiTMAttack::_nextWantedPacket->second;
 
     if(MiTMAttack::_currentWantedPacket == SniffingPackets::Uplink)
     {

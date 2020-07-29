@@ -11,8 +11,8 @@
 
 enum class SniffingPackets
 {
-    Uplink,
     Downlink,
+    Uplink, 
     Request,
     Accept
 };
