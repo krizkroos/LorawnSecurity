@@ -42,7 +42,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 
     if(key.size() > 2 || key.size() < 1)
         return Lorawan_result::NotSupportedFeature;
-    writeLog(Logger::JSON,"value to input: ");
+    writeLog(Logger::JSON,"value to input: " + value);
 
     Document::AllocatorType& allocator = map.GetAllocator();
     std::string currentKey = key.at(0);
@@ -52,7 +52,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 
         if(!map.HasMember(currentKey.c_str()))
         {
-             writeLog(Logger::JSON,"no member with root key: ");
+             writeLog(Logger::JSON,"no member with root key: " + currentKey);
              return Lorawan_result::NoValueAvailable;
         }
 
@@ -71,15 +71,28 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
         }
         else if(key.size() == 2)
         {
-            if(!map[currentKey.c_str()].IsArray())
-            {
-               writeLog(Logger::JSON,"recurency not available");
-               return Lorawan_result::NoValueAvailable;
-            }
-
             std::string rootKey = key.at(0);
             currentKey = key.at(1);
-            return changeValueInArray(rootKey,currentKey,value);
+
+            if(map[rootKey.c_str()].IsObject())
+            {
+                writeLog(Logger::JSON, "Inside Document is object type");
+
+                if(!map[rootKey.c_str()][currentKey.c_str()].IsString())
+                {
+                    writeLog(Logger::JSON,"not a string value / two keys");
+                    return Lorawan_result::NoValueAvailable;
+                }
+
+                map[rootKey.c_str()][currentKey.c_str()].SetString(value.c_str(), allocator);
+
+                return Lorawan_result::Success;
+            }
+            else
+            {
+                writeLog(Logger::JSON,"Looking for value with provided two keys: " + rootKey + " " + currentKey);
+                return changeValueInArray(rootKey,currentKey,value);
+            }
 
         }
     }

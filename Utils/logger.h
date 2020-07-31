@@ -8,6 +8,7 @@
 
 #define FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
+#define called(level) writeLog(level,std::string("Called"))
 #define writeLog(level, line) Logger::write(level,std::string(FILENAME), std::string(__FUNCTION__), __LINE__, line)
 #define writeHexLog(level, data) Logger::writeHex(level, std::string(FILENAME), std::string(__FUNCTION__), __LINE__, data, true)
 #define writePacketLog(packet) Logger::writePacket(Logger::Packet | Logger::PacketData, std::string(FILENAME), std::string(__FUNCTION__), __LINE__,packet)

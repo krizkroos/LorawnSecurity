@@ -74,6 +74,19 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<DataPacket> packet)
     return rv;
 }
 
+Lorawan_result PacketStorage::findFirstDownlink(std::shared_ptr<DataPacket> &packet)
+{
+    for(auto &pkt : macPayload)
+    {
+        if(pkt->getDirection() == "downlink")
+        {
+            packet = pkt;
+            return Lorawan_result::Success;
+        }
+    }
+   return Lorawan_result::NoValueAvailable;
+}
+
 std::vector<std::shared_ptr<JoinAcceptPacket> > PacketStorage::getAcceptPacket() const
 {
     return accept;

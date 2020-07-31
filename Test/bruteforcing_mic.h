@@ -10,19 +10,17 @@ class BruteforcingMIC : public LorawanTest
 {
 public:
     BruteforcingMIC();
-    const unsigned long int MAX_FCNT_GAP = 400;
     std::vector<std::vector<unsigned char>> micValues;
     virtual Lorawan_result stop() override;
     virtual Lorawan_result launch() override;
 
 
 private:
+    SendController uplink;
     Lorawan_result printPackets();
-    Lorawan_result setUpSending(std::shared_ptr<LorawanPacket> requestPkt);
+    Lorawan_result setUpSending(std::shared_ptr<LorawanPacket> packet);
     Lorawan_result sendGuardPacket(std::shared_ptr<DataPacket> dataPkt);
     Lorawan_result send(bytes magicFour, bytes eui64, std::string json);
-    Lorawan_result createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend);
-    Lorawan_result calculateMIC(DataPacket &dataPkt, bool changeFCnt = false);
     Lorawan_result sendDeathPacket(std::shared_ptr<DataPacket> dataPkt);
 };
 

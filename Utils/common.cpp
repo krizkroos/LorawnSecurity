@@ -1,5 +1,7 @@
 #include "common.h"
 #include "logger.h"
+#include "jsonparser.h"
+
 
 #include <sstream>
 #include <iomanip>
@@ -21,6 +23,7 @@ Common::Common()
 
 std::string Common::bytes2Str(bytes input)
 {
+    called(Logger::Common);
     std::string output{""};
     for(auto &byte: input)
     {
@@ -32,7 +35,7 @@ std::string Common::bytes2Str(bytes input)
 std::string Common::bytes2HexStr(bytes input, bool withSpace, bool withBreaks)
 {
     std::ostringstream stream;
-
+    called(Logger::Common);
     stream << std::hex << std::uppercase << std::setfill( '0');
 
     int counter{0};
@@ -66,6 +69,7 @@ std::string Common::bytes2HexStr(bytes input, bool withSpace, bool withBreaks)
 
 bytes Common::str2Bytes(std::string input)
 {
+    called(Logger::Common);
     if(input.empty())
         return bytes();
 
@@ -75,7 +79,7 @@ bytes Common::str2Bytes(std::string input)
 unsigned long int Common::bytes2ULong(const bytes input, bool bigEndian)
 {
     unsigned long int output =0;
-
+    called(Logger::Common);
     if(bigEndian)
     {
         for(size_t i=0; i < input.size() ; i++)
@@ -90,7 +94,7 @@ unsigned long int Common::bytes2ULong(const bytes input, bool bigEndian)
 bytes Common::ulong2Bytes(unsigned long int value)
 {
     bytes v;
-
+    called(Logger::Common);
     if(value == 0)
     {
         v.emplace_back(0x00);
@@ -121,13 +125,143 @@ bytes Common::ulong2Bytes(unsigned long int value)
 size_t Common::calcDecodeLength(const char* b64input)
 { //Calculates the length of a decoded string
     size_t len = strlen(b64input), padding = 0;
-
+    called(Logger::Common);
     if (b64input[len-1] == '=' && b64input[len-2] == '=') //last two chars are =
         padding = 2;
     else if (b64input[len-1] == '=') //last char is =
         padding = 1;
 
     return (len*3)/4 - padding;
+}
+
+Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
+{
+    called(Logger::Common);
+    writeLog(Logger::Common,"Calculating new MIC value");
+    writeLog(Logger::Common,"previous value of MIC: " + Common::bytes2HexStr(dataPkt.getMIC()) );
+
+    bytes initBlock{};
+    bytes _localFCnt{};
+    bytes _msg{};
+
+    bytes calcCMAC{};
+    bytes frameCounter = dataPkt.getFrameCounter();
+
+    initBlock.emplace_back(0x49);
+
+    for(int i=0; i < 4; i++)
+        initBlock.emplace_back(0x00);
+
+    initBlock.emplace_back(0x00); // DIR
+
+
+    bytes littleEndianDevAddr{};
+    if(Common::convertToLittleEndian(dataPkt.getDevAddr(),littleEndianDevAddr) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+
+    initBlock.insert(initBlock.end(),littleEndianDevAddr.begin(), littleEndianDevAddr.end());
+
+    if(frameCounter.empty())
+    {
+        writeLog(Logger::Common,"Empty frame counter");
+        return Lorawan_result::ErrorCalcMIC;
+    }
+    _localFCnt.emplace_back(0x00);
+    _localFCnt.emplace_back(0x00);
+
+    if(frameCounter.size() == 1)
+    {
+        _localFCnt.emplace_back(0x00);
+        _localFCnt.emplace_back(frameCounter.front());
+    }
+    else
+    {
+        _localFCnt.insert(_localFCnt.begin(), frameCounter.begin(), frameCounter.end());
+    }
+    if(changeFCnt)
+    {
+        unsigned long int dosCount = Common::bytes2ULong(_localFCnt);
+
+        dosCount += Common::MAX_FCNT_GAP;
+
+        _localFCnt = Common::ulong2Bytes(dosCount);
+        writeLog(Logger::Common,"changed value of FCnt: " + Common::bytes2HexStr(_localFCnt));
+    }
+
+    bytes littleEndianFCnt{};
+    if(Common::convertToLittleEndian(_localFCnt,littleEndianFCnt) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+
+
+    initBlock.insert(initBlock.end(), littleEndianFCnt.begin(), littleEndianFCnt.end());
+
+    initBlock.emplace_back(0x00);
+
+    bytes _rawPacket = dataPkt.getRawData();
+    bytes::iterator nextByte = _rawPacket.begin();
+
+    while(nextByte != _rawPacket.end() -4)
+    {
+       _msg.emplace_back(*nextByte);
+       nextByte++;
+    }
+
+    if(_msg.empty())
+        return Lorawan_result::ErrorCalcMIC;
+
+    initBlock.emplace_back(static_cast<byte>(_msg.size()));
+
+    bytes key = {0xB4,0x2D,0x67,0x33,0xB7,0x3E,0xA4,0x5C,0xEB,0x53,0xCB,0xEE,0x4A,0xCA,0x5D,0x28};
+
+    bytes message{};
+    message.insert(message.begin(), initBlock.begin(), initBlock.end());
+    message.insert(message.end(), _msg.begin(), _msg.end());
+
+    if(Common::calculate_cmac(key,message, calcCMAC) != Lorawan_result::Success)
+    {
+        writeLog(Logger::Common,"Error calculating CMAC");
+        return Lorawan_result::ErrorCalcMIC;
+    }
+
+    dataPkt.setMIC(bytes(calcCMAC.begin(), calcCMAC.begin() + 4));
+
+    writeLog(Logger::Common,"Finished calculating MIC");
+    return Lorawan_result::Success;
+}
+
+Lorawan_result Common::createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend)
+{
+    JsonParser jParser;
+    called(Logger::Common);
+    if(jParser.parse(refJson) != Lorawan_result::Success)
+        return Lorawan_result::ErrorCreatingPacket;
+
+    jsonToSend.clear();
+    bytes encodedPacket{};
+    writeLog(Logger::BruteforcingMIC,"ref: " + refJson);
+
+    if(Common::encodeBase64(rawPacket,encodedPacket) != Lorawan_result::Success)
+        return Lorawan_result::ErrorCreatingPacket;
+
+    if(encodedPacket.empty())
+        return Lorawan_result::ErrorCreatingPacket;
+
+    std::string changedValue = Common::bytes2Str(encodedPacket);
+
+    if(jParser.changeValue(jsonKeys({"txpk","data"}),changedValue) != Lorawan_result::Success)
+        return Lorawan_result::ErrorCreatingPacket;
+
+    jsonToSend = jParser.getJson();
+
+
+    writeLog(Logger::BruteforcingMIC," changed: " + jsonToSend );
+
+
+      return Lorawan_result::Success;
 }
 
 Lorawan_result Common::decodeBase64(bytes input, bytes& decoded)
@@ -137,7 +271,7 @@ Lorawan_result Common::decodeBase64(bytes input, bytes& decoded)
     size_t decodeLen = 0;
     Lorawan_result rv = Lorawan_result::Success;
 
-
+    called(Logger::Common);
     if(input.size() == 0)
        return Lorawan_result::InputSizeZero;
 
@@ -176,7 +310,7 @@ Lorawan_result Common::encodeBase64(bytes input, bytes &encoded)
     BUF_MEM *bufferPtr;
     char* buffer = reinterpret_cast<char*>(&input.at(0));
     Lorawan_result rv = Lorawan_result::Success;
-
+    called(Logger::Common);
     if(input.size() == 0)
        return Lorawan_result::InputSizeZero;
 
@@ -207,7 +341,7 @@ Lorawan_result Common::calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac)
     size_t mactlen;
    unsigned char *key = reinterpret_cast<unsigned char*>(&keyVal.at(0));
    unsigned char *message = reinterpret_cast<unsigned char*>(&msgVal.at(0));
-
+    called(Logger::Common);
     CMAC_CTX *ctx = CMAC_CTX_new();
     CMAC_Init(ctx, key, 16, EVP_aes_128_cbc(), NULL);
 
@@ -291,6 +425,7 @@ Lorawan_result Common::encrypt_aes128(bytes key, bytes message, bytes encMsg)
 
 Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &littleEndianValue)
 {
+    called(Logger::Common);
     littleEndianValue = std::vector<byte>(bigEndianValue.size(), 0x00); //init
 
     if(bigEndianValue.empty())
@@ -309,6 +444,7 @@ Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &little
 
 Lorawan_result Common::convertToBigEndian(bytes littleEndianValue, bytes &bigEndianValue)
 {
+    called(Logger::Common);
     if(littleEndianValue.empty())
         return Lorawan_result::InputSizeZero;
 
@@ -328,6 +464,7 @@ Lorawan_result Common::convertIPAddress(const bytes address, bytes &convertedAdd
 {
 
     //UNFINISHED
+    called(Logger::Common);
     std::pair<byte,byte> value;
     size_t refSize =address.size();
     if(address.empty())

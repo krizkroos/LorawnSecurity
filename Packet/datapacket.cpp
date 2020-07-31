@@ -19,6 +19,16 @@ bytes DataPacket::getDevAddr() const
     return devAddr;
 }
 
+std::string DataPacket::getDirection() const
+{
+    return direction;
+}
+
+void DataPacket::setDirection(const std::string &value)
+{
+    direction = value;
+}
+
 DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
 {
 
@@ -37,6 +47,8 @@ DataPacket::DataPacket(const std::shared_ptr<DataPacket> packet) : LorawanPacket
 
 Lorawan_result DataPacket::deserialize()
 {
+    called(Logger::Packet);
+
     unsigned char unconfirmedDataUp = 0x40;
     unsigned char unconfirmedDataDown = 0x60;
     unsigned char confirmedDataUp = 0x80;

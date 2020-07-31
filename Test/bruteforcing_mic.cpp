@@ -22,6 +22,42 @@ BruteforcingMIC::BruteforcingMIC()
 
 }
 
+Lorawan_result BruteforcingMIC::launch()
+{
+ PacketStorage *storage = PacketStorage::getInstance();
+
+    std::vector<std::shared_ptr<JoinRequestPacket> > requests = storage->getRequestPacket();
+    std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
+
+    if(macPayloads.size() > 0)
+    {
+        if(setUpSending(macPayloads.front()) != Lorawan_result::Success)
+        {
+            return Lorawan_result::ErrorTestSetUp;
+        }
+
+            std::shared_ptr<DataPacket> firstPayload = macPayloads.back(); // based on number
+
+            if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
+            {
+                return Lorawan_result::ErrorTestSetUp;
+            }
+
+            if(sendDeathPacket(firstPayload) != Lorawan_result::Success)
+            {
+                return Lorawan_result::ErrorTest;
+            }
+
+    } else
+    {
+        writeLog(Logger::BruteforcingMIC | Logger::LorawanTest,"no payload packets");
+        return Lorawan_result::ErrorTest;
+    }
+
+
+    return Lorawan_result::Success;
+}
+
 Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dataPkt)
 {
     std::string jsonToSend{};
@@ -38,7 +74,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
         return Lorawan_result::ErrorSerialize;
 
 
-    if(calculateMIC(copyPacket) != Lorawan_result::Success)
+    if(Common::calculateMIC(copyPacket) != Lorawan_result::Success)
     {
         return Lorawan_result::ErrorCalcMIC;
     }
@@ -47,7 +83,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
         return Lorawan_result::ErrorSerialize;
 
 
-    if(createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
+    if(Common::createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
             != Lorawan_result::Success)
         return Lorawan_result::ErrorCreatingPacket;
 
@@ -67,105 +103,6 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
     return Lorawan_result::Success;
 }
 
-Lorawan_result BruteforcingMIC::calculateMIC(DataPacket &dataPkt, bool changeFCnt)
-{
-    writeLog(Logger::BruteforcingMIC,"Calculating new MIC value");
-    writeLog(Logger::BruteforcingMIC,"previous value of MIC: " + Common::bytes2HexStr(dataPkt.getMIC()) );
-
-    bytes initBlock{};
-    bytes _localFCnt{};
-    bytes _msg{};
-
-    bytes calcCMAC{};
-    bytes frameCounter = dataPkt.getFrameCounter();
-
-    initBlock.emplace_back(0x49);
-
-    for(int i=0; i < 4; i++)
-        initBlock.emplace_back(0x00);
-
-    initBlock.emplace_back(0x00); // DIR
-
-
-    bytes littleEndianDevAddr{};
-    if(Common::convertToLittleEndian(dataPkt.getDevAddr(),littleEndianDevAddr) != Lorawan_result::Success)
-    {
-        return Lorawan_result::ErrorConvert2LittleEndian;
-    }
-
-    initBlock.insert(initBlock.end(),littleEndianDevAddr.begin(), littleEndianDevAddr.end());
-
-    if(frameCounter.empty())
-    {
-        writeLog(Logger::BruteforcingMIC,"Empty frame counter");
-        return Lorawan_result::ErrorCalcMIC;
-    }
-    _localFCnt.emplace_back(0x00);
-    _localFCnt.emplace_back(0x00);
-
-    if(frameCounter.size() == 1)
-    {
-        _localFCnt.emplace_back(0x00);
-        _localFCnt.emplace_back(frameCounter.front());
-    }
-    else
-    {
-        _localFCnt.insert(_localFCnt.begin(), frameCounter.begin(), frameCounter.end());
-    }
-    if(changeFCnt)
-    {
-        unsigned long int dosCount = Common::bytes2ULong(_localFCnt);
-
-        dosCount += MAX_FCNT_GAP;
-
-        _localFCnt = Common::ulong2Bytes(dosCount);
-        writeLog(Logger::BruteforcingMIC,"changed value of FCnt: " + Common::bytes2HexStr(_localFCnt));
-    }
-
-    bytes littleEndianFCnt{};
-    if(Common::convertToLittleEndian(_localFCnt,littleEndianFCnt) != Lorawan_result::Success)
-    {
-        return Lorawan_result::ErrorConvert2LittleEndian;
-    }
-
-    
-    initBlock.insert(initBlock.end(), littleEndianFCnt.begin(), littleEndianFCnt.end());
-
-    initBlock.emplace_back(0x00);
-
-
-
-    bytes _rawPacket = dataPkt.getRawData();
-    bytes::iterator nextByte = _rawPacket.begin();
-
-    while(nextByte != _rawPacket.end() -4)
-    {
-       _msg.emplace_back(*nextByte);
-       nextByte++;
-    }
-
-    if(_msg.empty())
-        return Lorawan_result::ErrorCalcMIC;
-
-    initBlock.emplace_back(static_cast<byte>(_msg.size()));
-
-    bytes key = {0xB4,0x2D,0x67,0x33,0xB7,0x3E,0xA4,0x5C,0xEB,0x53,0xCB,0xEE,0x4A,0xCA,0x5D,0x28};
-
-    bytes message{};
-    message.insert(message.begin(), initBlock.begin(), initBlock.end());
-    message.insert(message.end(), _msg.begin(), _msg.end());
-
-    if(Common::calculate_cmac(key,message, calcCMAC) != Lorawan_result::Success)
-    {
-        writeLog(Logger::BruteforcingMIC,"Error calculating CMAC");
-        return Lorawan_result::ErrorCalcMIC;
-    }
-
-    dataPkt.setMIC(bytes(calcCMAC.begin(), calcCMAC.begin() + 4));
-
-    writeLog(Logger::BruteforcingMIC,"Finished calculating MIC");
-    return Lorawan_result::Success;
-}
 
 Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> dataPkt)
 {
@@ -182,7 +119,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
     if(copyPacket.serialialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;
 
-    if(calculateMIC(copyPacket, true) != Lorawan_result::Success)
+    if(Common::calculateMIC(copyPacket, true) != Lorawan_result::Success)
     {
         return Lorawan_result::ErrorCalcMIC;
     }
@@ -191,7 +128,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
         return Lorawan_result::ErrorSerialize;
 
 
-    if(createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
+    if(Common::createJsonToSend(copyPacket.getRawData(),copyPacket.getJsonString(),jsonToSend)
             != Lorawan_result::Success)
         return Lorawan_result::ErrorCreatingPacket;
 
@@ -223,82 +160,6 @@ Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<LorawanPacket> pack
     return Lorawan_result::Success;
 }
 
-Lorawan_result BruteforcingMIC::launch()
-{
- PacketStorage *storage = PacketStorage::getInstance();
-
-    std::vector<std::shared_ptr<JoinRequestPacket> > requests = storage->getRequestPacket();
-    std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
-
-//    if(requests.size() > 0)
-//    {
-    if(macPayloads.size() > 0)
-    {
-        if(setUpSending(macPayloads.front()) != Lorawan_result::Success)
-        {
-            return Lorawan_result::ErrorTestSetUp;
-        }
-
-            std::shared_ptr<DataPacket> firstPayload = macPayloads.back(); // based on number
-
-            if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
-            {
-                return Lorawan_result::ErrorTestSetUp;
-            }
-
-            if(sendDeathPacket(firstPayload) != Lorawan_result::Success)
-            {
-                return Lorawan_result::ErrorTest;
-            }
-
-    } else
-    {
-        writeLog(Logger::BruteforcingMIC | Logger::LorawanTest,"no payload packets");
-        return Lorawan_result::ErrorTest;
-    }
-
-//    }
-//    else
-//    {
-//        std::cout << "no requests packets" << std::endl;
-//        return Lorawan_result::ErrorTest;
-//    }
-
-
-    return Lorawan_result::Success;
-}
-
-Lorawan_result
-BruteforcingMIC::createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend)
-{
-    JsonParser jParser;
-
-    if(jParser.parse(refJson) != Lorawan_result::Success)
-        return Lorawan_result::ErrorCreatingPacket;
-
-    jsonToSend.clear();
-    bytes encodedPacket{};
-
-    if(Common::encodeBase64(rawPacket,encodedPacket) != Lorawan_result::Success)
-        return Lorawan_result::ErrorCreatingPacket;
-
-    if(encodedPacket.empty())
-        return Lorawan_result::ErrorCreatingPacket;
-
-    std::string changedValue = Common::bytes2Str(encodedPacket);
-
-    if(jParser.changeValue(jsonKeys({"rxpk","data"}),changedValue) != Lorawan_result::Success)
-        return Lorawan_result::ErrorCreatingPacket;
-
-    jsonToSend = jParser.getJson();
-
-    writeLog(Logger::BruteforcingMIC,"ref: \n" + refJson);
-    writeLog(Logger::BruteforcingMIC," changed: \n" + jsonToSend );
-
-
-    return Lorawan_result::Success;
-
-}
 
 Lorawan_result BruteforcingMIC::send(bytes magicFour, bytes eui64, std::string json)
 {

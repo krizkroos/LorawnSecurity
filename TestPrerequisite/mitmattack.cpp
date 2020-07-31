@@ -46,6 +46,7 @@ MiTMAttack::MiTMAttack()
 
 Lorawan_result MiTMAttack::start()
 {
+    called(Logger::MiTM);
     writeLog(Logger::MiTM,"start MiTM prerequisite");
     Lorawan_result result = Lorawan_result::Success;
 
@@ -197,7 +198,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                         dataPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(),
                                           (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
                         dataPacket->setJsonString(jsonString); // check if can be after deserialization
-
+                        dataPacket->setDirection("downlink");
                         dataPacket->deserialize();
                         storage->addPacket(dataPacket);
 
@@ -220,7 +221,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                         dataPacket->setIP(ip.dst_addr().to_string(), ip.flags(), ip.id(), ip.tos(),ip.ttl(),
                                           (ip.endianness == Tins::PDU::endian_type::BE)? false: true);
                         dataPacket->setJsonString(jsonString); // check if can be after deserialization
-
+                        dataPacket->setDirection("uplink");
                         dataPacket->deserialize();
                         storage->addPacket(dataPacket);
 

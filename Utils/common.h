@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include "defineLorawan.h"
+#include "packetstorage.h"
 #include <string>
 
 class Common
@@ -24,8 +25,11 @@ public:
     static bytes ulong2Bytes(unsigned long int value);
     static Lorawan_result calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac);
     static Lorawan_result encrypt_aes128(bytes key, bytes message, bytes encMsg);
+    static Lorawan_result calculateMIC(DataPacket &dataPkt, bool changeFCnt = false);
+    static Lorawan_result createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend);
 private:
     static size_t calcDecodeLength(const char *b64input);
+    static const unsigned long int MAX_FCNT_GAP = 400;
 };
 
 #endif // COMMON_H

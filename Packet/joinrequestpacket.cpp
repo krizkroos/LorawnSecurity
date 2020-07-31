@@ -1,5 +1,6 @@
 #include "joinrequestpacket.h"
 #include "Utils/common.h"
+#include "Utils/logger.h"
 
 #include <iostream>
 
@@ -54,6 +55,8 @@ Lorawan_result JoinRequestPacket::deserialize()
 {
 
     const byte joinRequestType = 0x00;
+
+    called(Logger::Packet);
 
     if(rawPacket.empty())
         return Lorawan_result::InputSizeZero;

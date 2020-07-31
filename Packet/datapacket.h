@@ -12,6 +12,9 @@ private:
     bytes fOpts;
     byte fPort;
     bytes frmPayload;
+
+    std::string direction;
+
 public:
     DataPacket();
     DataPacket(const std::shared_ptr<DataPacket> packet);
@@ -20,6 +23,8 @@ public:
     bytes getFrameCounter() const;
     void setFrameCounter(const bytes &value);
     bytes getDevAddr() const;
+    std::string getDirection() const;
+    void setDirection(const std::string &value);
 };
 
 #endif // DATAPACKET_H

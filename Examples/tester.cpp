@@ -14,9 +14,9 @@ Lorawan_result LorawanTester::testMIC()
 {
     LorawanSecurity loraSec;
     TestParams params;
-    params.setLogFileName("lorawan-test.log");
+    params.setLogFileName("lorawan-MIC-test.log");
 
-    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::MiTM | Logger::LorawanTest | Logger::Common);
+    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::MiTM | Logger::LorawanTest | Logger::Common | Logger::BruteforcingMIC);
     writeLog(Logger::LorawanTest, "testing MIC");
 
 
@@ -26,7 +26,7 @@ Lorawan_result LorawanTester::testMIC()
 
     std::map<SniffingPackets, int> wantedPacket;
 
-    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
+    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 2));
 
     std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,"udp dst port 1700","wlan0");
     mitm->setName("MiTM");
@@ -69,9 +69,9 @@ Lorawan_result LorawanTester::testBatteryDeplation()
 
     LorawanSecurity loraSec;
     TestParams params;
-    params.setLogFileName("lorawan-test-2.log");
+    params.setLogFileName("lorawan-test-battery.log");
 
-    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::LorawanTest | Logger::BatteryDepletion);
+    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::Common | Logger::LorawanTest | Logger::BatteryDepletion);
     writeLog(Logger::LorawanTest, "testing battery deplation");
 
 
@@ -81,8 +81,8 @@ Lorawan_result LorawanTester::testBatteryDeplation()
 
     std::map<SniffingPackets, int> wantedPacket;
 
-    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 2));
-    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 2));
+    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 3));
+    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
 
     std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,"udp port 1700","wlan0");
     mitm->setName("MiTM");

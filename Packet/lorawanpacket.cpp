@@ -1,4 +1,5 @@
 #include "lorawanpacket.h"
+#include "Utils/logger.h"
 
 MsgType LorawanPacket::getType() const
 {
@@ -82,6 +83,8 @@ LorawanPacket::LorawanPacket(MsgType type)
 
 Lorawan_result LorawanPacket::setIP(std::string dstAddr, Tins::IP::Flags flags, uint16_t id, uint8_t tos, uint8_t ttl, bool convertToBigEndian)
 {
+
+    called(Logger::Packet);
     if(convertToBigEndian)
     {
 

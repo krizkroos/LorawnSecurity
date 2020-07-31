@@ -21,6 +21,7 @@ public:
      Lorawan_result addPacket(std::shared_ptr<JoinRequestPacket> packet);
      Lorawan_result addPacket(std::shared_ptr<JoinAcceptPacket> packet);
      Lorawan_result addPacket(std::shared_ptr<DataPacket> packet);
+     Lorawan_result findFirstDownlink(std::shared_ptr<DataPacket> &packet);
 };
 
 #endif // PACKETSTORAGE_H
