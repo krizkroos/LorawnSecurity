@@ -48,6 +48,7 @@ Lorawan_result MiTMAttack::start()
 {
     called(Logger::MiTM);
     writeLog(Logger::MiTM,"start MiTM prerequisite");
+    MiTMAttack::_sniffedPacketNum = 0;
     Lorawan_result result = Lorawan_result::Success;
 
     if(_interface.empty() || _filter.empty())

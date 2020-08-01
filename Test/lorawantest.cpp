@@ -46,6 +46,11 @@ std::vector<std::shared_ptr<TestPrerequisite> >& LorawanTest::getPrerequisite()
     return prerequisite;
 }
 
+void LorawanTest::clearPrerequisites()
+{
+    prerequisite.clear();
+}
+
 Lorawan_result LorawanTest::isValid()
 {
     if(testDevice->isValid() != Lorawan_result::Success)

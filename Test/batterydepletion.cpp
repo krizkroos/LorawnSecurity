@@ -31,6 +31,12 @@ Lorawan_result BatteryDepletion::sendExtraPacket(std::shared_ptr<DataPacket> dow
     std::string jsonToSend{};
     called(Logger::BatteryDepletion);
     DataPacket copyPacket(downlinkPacket);
+
+
+    if(copyPacket.serialialize() != Lorawan_result::Success) //updated rawPacket
+        return Lorawan_result::ErrorSerialize;
+
+
     if(Common::calculateMIC(copyPacket) != Lorawan_result::Success)
     {
         return Lorawan_result::ErrorCalcMIC;
@@ -72,8 +78,9 @@ Lorawan_result BatteryDepletion::launch()
            return Lorawan_result::ErrorTestSetUp;
         }
 
-        std::chrono::milliseconds timespan(1000);
-        std::this_thread::sleep_for(timespan);
+//        writeLog(Logger::BatteryDepletion, "Timeout for 1 s");
+//        std::chrono::milliseconds timespan(1000);
+//        std::this_thread::sleep_for(timespan);
 
         if(setUpSending(downlinkPacket) != Lorawan_result::Success)
         {

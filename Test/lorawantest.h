@@ -29,6 +29,7 @@ public:
     std::string getDescription() const;
     void setDescription(const std::string &value);
     std::vector<std::shared_ptr<TestPrerequisite>>& getPrerequisite();
+    void clearPrerequisites();
 };
 
 #endif // LORAWANTEST_H

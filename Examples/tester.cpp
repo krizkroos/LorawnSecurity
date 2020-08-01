@@ -72,7 +72,7 @@ Lorawan_result LorawanTester::testBatteryDeplation()
     params.setLogFileName("lorawan-test-battery.log");
 
     Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::Common | Logger::LorawanTest | Logger::BatteryDepletion);
-    writeLog(Logger::LorawanTest, "testing battery deplation");
+    writeLog(Logger::LorawanTest, "testing battery depletion");
 
 
     loraSec.setUpTestParams(params);
@@ -81,17 +81,17 @@ Lorawan_result LorawanTester::testBatteryDeplation()
 
     std::map<SniffingPackets, int> wantedPacket;
 
-    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 3));
+    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 1));
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
 
-    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,"udp port 1700","wlan0");
-    mitm->setName("MiTM");
+    std::shared_ptr<MiTMAttack> mitmCollectDownlink = std::make_shared<MiTMAttack>(wantedPacket,"udp port 1700","wlan0");
+    mitmCollectDownlink->setName("MiTM");
     std::shared_ptr<BatteryDepletion> testOne = std::make_shared<BatteryDepletion>();
 
     testOne->setDescription("Battery deplation test");
     testOne->setTestDevice(testDevice);
 
-    if(testOne->addPrerequisite(mitm) != Lorawan_result::Success)
+    if(testOne->addPrerequisite(mitmCollectDownlink) != Lorawan_result::Success)
     {
         writeLog(Logger::LorawanTest,"Error adding prerequisite");
         return Lorawan_result::ErrorPrerequisite;
@@ -116,6 +116,38 @@ Lorawan_result LorawanTester::testBatteryDeplation()
         writeLog(Logger::LorawanTest,"Error launching test");
         return Lorawan_result::ErrorTest;
     }
+
+    wantedPacket.clear();
+    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
+    std::shared_ptr<MiTMAttack> mitmLoopUplink = std::make_shared<MiTMAttack>(wantedPacket,"udp port 1700","wlan0");
+
+    testOne->clearPrerequisites();
+
+    if(testOne->addPrerequisite(mitmLoopUplink) != Lorawan_result::Success)
+    {
+        writeLog(Logger::LorawanTest,"Error adding next prerequisite");
+        return Lorawan_result::ErrorPrerequisite;
+    }
+    for(int i=0; i < 5; i++)
+    {
+        writeLog(Logger::LorawanTest, "loop no "+ std::to_string(i));
+        if(loraSec.startPrerequisites()  != Lorawan_result::Success)
+        {
+            writeLog(Logger::LorawanTest,"Error starting next prerequisite");
+            return Lorawan_result::ErrorPrerequisite;
+        }
+
+        printPackets();
+
+        if(loraSec.launchTest()  != Lorawan_result::Success)
+        {
+            writeLog(Logger::LorawanTest,"Error launching next test");
+            return Lorawan_result::ErrorTest;
+        }
+
+    }
+
+
    return Lorawan_result::Success;
 }
 
