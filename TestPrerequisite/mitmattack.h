@@ -37,9 +37,6 @@ public:
     virtual Lorawan_result start() override;
     virtual Lorawan_result stop() override;
 
-    Lorawan_result arpSpoofing();
-    Lorawan_result dnsSpoofing();
-    Lorawan_result sendPacket(LorawanPacket packet);
     Lorawan_result sniffing(std::string interface, std::string filter);
 
     static int _wantedPacketNum;
