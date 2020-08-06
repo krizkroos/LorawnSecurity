@@ -26,6 +26,7 @@ SOURCES += \
     Packet/sendcontroller.cpp \
     Test/batterydepletion.cpp \
     Test/bruteforcing_mic.cpp \
+    Test/requestdos.cpp \
     Test/testparams.cpp \
     TestPrerequisite/mitmattack.cpp \
     TestPrerequisite/testprerequisite.cpp \
@@ -42,6 +43,7 @@ HEADERS += \
     Packet/sendcontroller.h \
     Test/batterydepletion.h \
     Test/bruteforcing_mic.h \
+    Test/requestdos.h \
     Test/testparams.h \
     Utils/common.h \
     Utils/jsonparser.h \

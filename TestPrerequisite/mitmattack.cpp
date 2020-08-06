@@ -251,7 +251,6 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
     return MiTMAttack::checkSniffedNumber();
 }
 
-
 Lorawan_result MiTMAttack::sniffing(std::string interface, std::string filter)
 {
     if(interface.empty() || filter.empty())

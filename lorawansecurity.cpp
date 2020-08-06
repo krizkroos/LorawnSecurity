@@ -22,12 +22,6 @@ Lorawan_result LorawanSecurity::addTest(std::shared_ptr<LorawanTest> test)
     return Lorawan_result::Success;
 }
 
-Lorawan_result LorawanSecurity::setUpTestParams(TestParams &params)
-{
-    _testParams = params;
-
-    return Lorawan_result::Success;
-}
 
 Lorawan_result LorawanSecurity::startPrerequisites()
 {

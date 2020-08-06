@@ -10,17 +10,51 @@ LorawanTester::LorawanTester()
 
 }
 
-Lorawan_result LorawanTester::testMIC()
+Lorawan_result LorawanTester::checkTestParams(TestParams params)
+{
+    std::string logfileName = params.getLogFileName();
+    std::string interface = params.getInterfaceName();
+    std::string filter = params.getFilter();
+    if(logfileName.empty())
+    {
+        std::cout << "No log file name provided" << std::endl;
+        return Lorawan_result::ErrorTest;
+    }
+
+    if(params.getLogLevel() == 0)
+    {
+        std::cout << "No log level set" << std::endl;
+        return Lorawan_result::ErrorTest;
+    }
+
+    if(interface.empty())
+    {
+        writeLog(Logger::LorawanTest,"No interface provided");
+        return Lorawan_result::ErrorTest;
+    }
+
+    if(filter.empty())
+    {
+        writeLog(Logger::LorawanTest,"No filter provided");
+        return Lorawan_result::ErrorTest;
+    }
+
+    return Lorawan_result::Success;
+
+}
+
+Lorawan_result LorawanTester::testMIC(TestParams params)
 {
     LorawanSecurity loraSec;
-    TestParams params;
-    params.setLogFileName("lorawan-MIC-test.log");
 
-    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::MiTM | Logger::LorawanTest | Logger::Common | Logger::BruteforcingMIC);
     writeLog(Logger::LorawanTest, "testing MIC");
 
+    if(checkTestParams(params) == Lorawan_result::ErrorTest)
+    {
+        return Lorawan_result::ErrorTest;
+    }
 
-    loraSec.setUpTestParams(params);
+    Logger logger(params.getLogFileName(),params.getLogLevel());
 
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
@@ -28,7 +62,7 @@ Lorawan_result LorawanTester::testMIC()
 
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 2));
 
-    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,"udp dst port 1700","wlan0");
+    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
     mitm->setName("MiTM");
     std::shared_ptr<BruteforcingMIC> testOne = std::make_shared<BruteforcingMIC>();
 
@@ -64,18 +98,17 @@ Lorawan_result LorawanTester::testMIC()
     return Lorawan_result::Success;
 }
 
-Lorawan_result LorawanTester::testBatteryDeplation()
+Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
 {
 
     LorawanSecurity loraSec;
-    TestParams params;
-    params.setLogFileName("lorawan-test-battery.log");
-
-    Logger logger(params.getLogFileName(), Logger::JSON | Logger::RawData | Logger::Common | Logger::LorawanTest | Logger::BatteryDepletion);
     writeLog(Logger::LorawanTest, "testing battery depletion");
+    if(checkTestParams(params) == Lorawan_result::ErrorTest)
+    {
+        return Lorawan_result::ErrorTest;
+    }
 
-
-    loraSec.setUpTestParams(params);
+    Logger logger(params.getLogFileName(), params.getLogLevel());
 
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
@@ -84,7 +117,7 @@ Lorawan_result LorawanTester::testBatteryDeplation()
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 1));
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
 
-    std::shared_ptr<MiTMAttack> mitmCollectDownlink = std::make_shared<MiTMAttack>(wantedPacket,"udp port 1700","wlan0");
+    std::shared_ptr<MiTMAttack> mitmCollectDownlink = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
     mitmCollectDownlink->setName("MiTM");
     std::shared_ptr<BatteryDepletion> testOne = std::make_shared<BatteryDepletion>();
 
@@ -119,7 +152,7 @@ Lorawan_result LorawanTester::testBatteryDeplation()
 
     wantedPacket.clear();
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
-    std::shared_ptr<MiTMAttack> mitmLoopUplink = std::make_shared<MiTMAttack>(wantedPacket,"udp port 1700","wlan0");
+    std::shared_ptr<MiTMAttack> mitmLoopUplink = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
 
     testOne->clearPrerequisites();
 
@@ -128,7 +161,21 @@ Lorawan_result LorawanTester::testBatteryDeplation()
         writeLog(Logger::LorawanTest,"Error adding next prerequisite");
         return Lorawan_result::ErrorPrerequisite;
     }
-    for(int i=0; i < 5; i++)
+
+    int downlinkCounter = 0;
+    int paramsCounter = params.getDownlinkCounter();
+    if( paramsCounter > 0)
+    {
+        downlinkCounter = paramsCounter;
+        writeLog(Logger::LorawanTest,"downlink counter set up from params = " + std::to_string(downlinkCounter));
+    }
+    else
+    {
+        downlinkCounter = 3;
+        writeLog(Logger::LorawanTest,"downlink counter set to default = " + std::to_string(downlinkCounter));
+    }
+
+    for(int i=0; i < downlinkCounter; i++)
     {
         writeLog(Logger::LorawanTest, "loop no "+ std::to_string(i));
         if(loraSec.startPrerequisites()  != Lorawan_result::Success)
@@ -188,5 +235,7 @@ Lorawan_result LorawanTester::printPackets()
 
     return Lorawan_result::Success;
 }
+
+
 
 

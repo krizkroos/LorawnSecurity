@@ -35,12 +35,11 @@ public:
     static Lorawan_result write(unsigned long long int level, std::string file, std::string function, int line, std::string content);
     static Lorawan_result writeHex(unsigned long long int level, std::string file, std::string function, int line, bytes content, bool withSpace);
     static Lorawan_result writePacket(unsigned long long level, std::string file, std::string function, int line, const Tins::Packet &packet);
-
+    static std::string getTime();
     static std::string _filename;
     static unsigned long long int _currentLevel;
 
 private:
-    static std::string getTime();
     static std::string parseLevel(unsigned long long level);
 };
 

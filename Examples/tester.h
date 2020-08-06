@@ -15,10 +15,11 @@ class LorawanTester
 {
 public:
     LorawanTester();
-    Lorawan_result testMIC();
-    Lorawan_result testBatteryDeplation();
+    Lorawan_result testMIC(TestParams params);
+    Lorawan_result testBatteryDeplation(TestParams params);
 private:
     Lorawan_result printPackets();
+    Lorawan_result checkTestParams(TestParams params);
 };
 
 #endif // TESTER_H
