@@ -5,27 +5,6 @@
 #include <iostream>
 
 
-//void JoinRequestPacket::setDestinationAddress(std::string value, bool convertToBigEndian)
-//{
-//    std::string ipAddress{};
-//    if(convertToBigEndian)
-//    {
-
-//        //TODO Common::convertIPAddress(const bytes address, bytes &convertedAddr)
-//    }
-//    else
-//    {
-//        ipAddress =value;
-//    }
-
-
-//    destinationAddress = Tins::IP(ipAddress);
-//}
-
-
-
-
-
 bytes JoinRequestPacket::getAppEUI() const
 {
     return appEUI;
@@ -46,9 +25,28 @@ void JoinRequestPacket::setDevEUI(const bytes &value)
     devEUI = value;
 }
 
+bytes JoinRequestPacket::getDevNonce() const
+{
+    return devNonce;
+}
+
+void JoinRequestPacket::setDevNonce(const bytes &value)
+{
+    devNonce = value;
+}
+
 JoinRequestPacket::JoinRequestPacket() : LorawanPacket(MsgType::JoinRequest)
 {
 
+}
+
+JoinRequestPacket::JoinRequestPacket(const std::shared_ptr<JoinRequestPacket> packet)  : LorawanPacket(packet)
+{
+    called(Logger::Packet);
+
+    appEUI = packet->getAppEUI();
+    devEUI = packet->getDevEUI();
+    devNonce = packet->getDevNonce();
 }
 
 Lorawan_result JoinRequestPacket::deserialize()
@@ -82,7 +80,59 @@ Lorawan_result JoinRequestPacket::deserialize()
         return Lorawan_result::ErrorConvert2BigEndian;
     }
 
+    nextByte += 8;
+
+    bytes littleEndiandevNonce  = bytes(nextByte, nextByte + 2);
+
+    if(Common::convertToBigEndian(littleEndiandevNonce,devNonce) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2BigEndian;
+    }
+
+
     return Lorawan_result::Success;
 
 
+}
+
+Lorawan_result JoinRequestPacket::serialize()
+{
+    byte mhdr{0x60};
+    if(rawPacket.empty())
+    {
+        writeLog(Logger::Packet,"raw packet is empty, default mhdr");
+    }
+    else
+        mhdr = rawPacket.front();
+
+    rawPacket.clear();
+
+    rawPacket.emplace_back(mhdr);
+
+    bytes littleEndianAppEUI{};
+    if(Common::convertToLittleEndian(appEUI,littleEndianAppEUI) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+
+    rawPacket.insert(rawPacket.begin()+1, littleEndianAppEUI.begin(), littleEndianAppEUI.end());
+
+    bytes littleEndianDevEUI{};
+    if(Common::convertToLittleEndian(devEUI,littleEndianDevEUI) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+
+    rawPacket.insert(rawPacket.end(), littleEndianDevEUI.begin(), littleEndianDevEUI.end());
+
+    bytes littleEndianDevNonce{};
+    if(Common::convertToLittleEndian(devNonce,littleEndianDevNonce) != Lorawan_result::Success)
+    {
+        return Lorawan_result::ErrorConvert2LittleEndian;
+    }
+
+    rawPacket.insert(rawPacket.end(), littleEndianDevNonce.begin(), littleEndianDevNonce.end());
+
+
+    return Lorawan_result::Success;
 }

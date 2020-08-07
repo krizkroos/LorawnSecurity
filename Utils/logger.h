@@ -26,6 +26,7 @@ public:
         Common,
         BruteforcingMIC,
         BatteryDepletion,
+        RequestDoS,
         JSON,
         PacketData,
         RawData

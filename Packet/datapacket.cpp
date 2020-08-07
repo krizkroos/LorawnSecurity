@@ -36,6 +36,8 @@ DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
 
 DataPacket::DataPacket(const std::shared_ptr<DataPacket> packet) : LorawanPacket(packet)
 {
+    called(Logger::Packet);
+
     devAddr = packet->devAddr;
     fCtrl = packet->fCtrl;
     frameCounter = packet->frameCounter;
@@ -121,7 +123,7 @@ Lorawan_result DataPacket::deserialize()
 
 }
 
-Lorawan_result DataPacket::serialialize()
+Lorawan_result DataPacket::serialize()
 {
     byte mhdr{0x40};
     if(rawPacket.empty())

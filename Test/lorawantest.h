@@ -18,7 +18,6 @@ protected:
 
 public:
     virtual Lorawan_result launch() =0;
-    virtual Lorawan_result stop() =0;
     virtual ~LorawanTest()= 0;
 
 

@@ -13,13 +13,17 @@ private:
 
 public:
     JoinRequestPacket();
+    JoinRequestPacket(const std::shared_ptr<JoinRequestPacket> packet);
     Lorawan_result deserialize();
-
+    Lorawan_result serialize();
 
     bytes getAppEUI() const;
     void setAppEUI(const bytes &value);
     bytes getDevEUI() const;
     void setDevEUI(const bytes &value);
+
+    bytes getDevNonce() const;
+    void setDevNonce(const bytes &value);
 };
 
 #endif // JOINREQUESTPACKET_H

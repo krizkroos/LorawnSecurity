@@ -19,7 +19,7 @@ public:
     DataPacket();
     DataPacket(const std::shared_ptr<DataPacket> packet);
     Lorawan_result deserialize();
-    Lorawan_result serialialize();
+    Lorawan_result serialize();
     bytes getFrameCounter() const;
     void setFrameCounter(const bytes &value);
     bytes getDevAddr() const;

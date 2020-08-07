@@ -16,6 +16,8 @@
 #include <openssl/cmac.h>
 #include <openssl/err.h>
 
+unsigned long int Common::MAX_FCNT_GAP = 1;
+bytes Common::nwkSKey = {0xC5,0xCD,0x1F,0x3F,0x85,0x40,0xF0,0xC8,0xA0,0x0F,0x3F,0x5E,0x62,0x44,0x32,0xA0};
 Common::Common()
 {
 
@@ -30,6 +32,19 @@ std::string Common::bytes2Str(bytes input)
         output += static_cast<char>(byte);
     }
     return output;
+}
+
+std::string Common::getTime()
+{
+    struct tm *tm;
+    struct timeval tv;
+    char time_string[40];
+
+    gettimeofday(&tv,nullptr);
+    tm = localtime(&tv.tv_sec);
+    strftime(time_string, sizeof (time_string), "%H-%M-%S", tm);
+
+    return std::string(time_string);
 }
 
 std::string Common::bytes2HexStr(bytes input, bool withSpace, bool withBreaks)
@@ -134,6 +149,17 @@ size_t Common::calcDecodeLength(const char* b64input)
     return (len*3)/4 - padding;
 }
 
+void Common::setNwkSKey(const bytes &value)
+{
+    nwkSKey = value;
+}
+
+void Common::setMAX_FCNT_GAP(unsigned long value)
+{
+    MAX_FCNT_GAP = value;
+    writeLog(Logger::Common,"MAX_FCNT_GAP = " + std::to_string(MAX_FCNT_GAP));
+}
+
 Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
 {
     called(Logger::Common);
@@ -215,13 +241,14 @@ Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
 
     initBlock.emplace_back(static_cast<byte>(_msg.size()));
 
-    bytes key = {0xC5,0xCD,0x1F,0x3F,0x85,0x40,0xF0,0xC8,0xA0,0x0F,0x3F,0x5E,0x62,0x44,0x32,0xA0};
-
     bytes message{};
     message.insert(message.begin(), initBlock.begin(), initBlock.end());
     message.insert(message.end(), _msg.begin(), _msg.end());
 
-    if(Common::calculate_cmac(key,message, calcCMAC) != Lorawan_result::Success)
+    writeLog(Logger::Common, "key value used for calculationg CMAC:");
+    writeHexLog(Logger::Common,Common::nwkSKey);
+
+    if(Common::calculate_cmac(Common::nwkSKey,message, calcCMAC) != Lorawan_result::Success)
     {
         writeLog(Logger::Common,"Error calculating CMAC");
         return Lorawan_result::ErrorCalcMIC;
@@ -233,7 +260,7 @@ Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
     return Lorawan_result::Success;
 }
 
-Lorawan_result Common::createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend)
+Lorawan_result Common::createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend, std::string msgType)
 {
     JsonParser jParser;
     called(Logger::Common);
@@ -252,7 +279,9 @@ Lorawan_result Common::createJsonToSend(bytes rawPacket, std::string refJson, st
 
     std::string changedValue = Common::bytes2Str(encodedPacket);
 
-    if(jParser.changeValue(jsonKeys({"txpk","data"}),changedValue) != Lorawan_result::Success)
+    writeLog(Logger::JSON, "Looking for a message type in json: " + msgType);
+
+    if(jParser.changeValue(jsonKeys({msgType,"data"}),changedValue) != Lorawan_result::Success)
         return Lorawan_result::ErrorCreatingPacket;
 
     jsonToSend = jParser.getJson();

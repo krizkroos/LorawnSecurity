@@ -11,7 +11,11 @@ private:
     std::string interfaceName;
     std::string filter;
     int downlinkCounter = 0;
+    int requestCounter = 0;
+    unsigned long max_gap = 0;
     unsigned long long int _logLevel = 0;
+
+    bytes nwkSKey;
 public:
     TestParams();
     std::string getLogFileName() const;
@@ -24,6 +28,12 @@ public:
     void setFilter(const std::string &value);
     int getDownlinkCounter() const;
     void setDownlinkCounter(int value);
+    int getRequestCounter() const;
+    void setRequestCounter(int value);
+    unsigned long getMax_gap() const;
+    void setMax_gap(unsigned long value);
+    bytes getNwkSKey() const;
+    void setNwkSKey(const bytes &value);
 };
 
 #endif // TESTPARAMS_H

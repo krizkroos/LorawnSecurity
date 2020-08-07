@@ -51,6 +51,36 @@ void TestParams::setDownlinkCounter(int value)
     downlinkCounter = value;
 }
 
+int TestParams::getRequestCounter() const
+{
+    return requestCounter;
+}
+
+void TestParams::setRequestCounter(int value)
+{
+    requestCounter = value;
+}
+
+unsigned long TestParams::getMax_gap() const
+{
+    return max_gap;
+}
+
+void TestParams::setMax_gap(unsigned long value)
+{
+    max_gap = value;
+}
+
+bytes TestParams::getNwkSKey() const
+{
+    return nwkSKey;
+}
+
+void TestParams::setNwkSKey(const bytes &value)
+{
+    nwkSKey = value;
+}
+
 TestParams::TestParams()
 {
     

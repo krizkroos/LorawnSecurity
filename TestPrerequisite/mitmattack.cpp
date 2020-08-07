@@ -109,7 +109,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
             else if(serializedData.at(1) == 0x00)
             {
               writeLog(Logger::MiTM, "DOWNLINK lorawan packet");
-              rawJson = bytes(serializedData.begin() +4, serializedData.end()); // omit EUI
+              rawJson = bytes(serializedData.begin() +4, serializedData.end()); // omit magic four
               jsonString = Common::bytes2Str(rawJson);
               jParser.parse(jsonString);
 
@@ -330,21 +330,4 @@ void MiTMAttack::incrementSniffed()
 
     writeLog(Logger::MiTM,"incremented sniffed and wanted packet counter");
     MiTMAttack::_sniffedPacketNum +=1;
-}
-
-
-Lorawan_result MiTMAttack::arpSpoofing()
-{
-    return Lorawan_result::Success;
-}
-
-Lorawan_result MiTMAttack::dnsSpoofing()
-{
-    return Lorawan_result::Success;
-}
-
-Lorawan_result MiTMAttack::sendPacket(LorawanPacket packet)
-{
-    packet.serializePacket();
-    return Lorawan_result::Success;
 }

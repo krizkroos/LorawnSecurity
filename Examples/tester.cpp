@@ -2,7 +2,16 @@
 #include <iostream>
 
 #include "Utils/logger.h"
+#include "Utils/common.h"
+#include "Utils/jsonparser.h"
+
 #include "Test/batterydepletion.h"
+#include "Test/bruteforcing_mic.h"
+#include "Test/requestdos.h"
+
+#include "TestPrerequisite/mitmattack.h"
+#include "Device/lorawandevice1_0_2.h"
+#include "lorawansecurity.h"
 #include <map>
 
 LorawanTester::LorawanTester()
@@ -46,15 +55,26 @@ Lorawan_result LorawanTester::checkTestParams(TestParams params)
 Lorawan_result LorawanTester::testMIC(TestParams params)
 {
     LorawanSecurity loraSec;
+    Logger logger(params.getLogFileName(),params.getLogLevel());
 
     writeLog(Logger::LorawanTest, "testing MIC");
 
     if(checkTestParams(params) == Lorawan_result::ErrorTest)
     {
-        return Lorawan_result::ErrorTest;
+        return Lorawan_result::ErrorTestSetUp;
     }
 
-    Logger logger(params.getLogFileName(),params.getLogLevel());
+    unsigned long  _MAX_FCNT_GAP = params.getMax_gap();
+    if(_MAX_FCNT_GAP > 1)
+    {
+        Common::setMAX_FCNT_GAP(_MAX_FCNT_GAP);
+    }
+    bytes key = params.getNwkSKey();
+
+    if(!key.empty())
+    {
+        Common::setNwkSKey(key);
+    }
 
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
@@ -102,13 +122,15 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
 {
 
     LorawanSecurity loraSec;
+    Logger logger(params.getLogFileName(), params.getLogLevel());
+
     writeLog(Logger::LorawanTest, "testing battery depletion");
     if(checkTestParams(params) == Lorawan_result::ErrorTest)
     {
-        return Lorawan_result::ErrorTest;
+        return Lorawan_result::ErrorTestSetUp;
     }
 
-    Logger logger(params.getLogFileName(), params.getLogLevel());
+
 
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
@@ -197,6 +219,62 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
 
    return Lorawan_result::Success;
 }
+
+Lorawan_result LorawanTester::testDoSRequest(TestParams params)
+{
+    LorawanSecurity loraSec;
+    Logger logger(params.getLogFileName(),params.getLogLevel());
+
+
+    writeLog(Logger::LorawanTest, "testing DoS Request");
+
+    if(checkTestParams(params) == Lorawan_result::ErrorTest)
+    {
+        return Lorawan_result::ErrorTestSetUp;
+    }
+
+    std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
+
+    std::map<SniffingPackets, int> wantedPacket;
+
+    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Request, 1));
+
+    std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
+    mitm->setName("MiTM");
+    std::shared_ptr<RequestDoS> testOne = std::make_shared<RequestDoS>();
+
+    testOne->setDescription("DoS with JoinRequest packets");
+    testOne->setTestDevice(testDevice);
+
+    if(testOne->addPrerequisite(mitm) != Lorawan_result::Success)
+    {
+        writeLog(Logger::LorawanTest,"Error adding prerequisite");
+        return Lorawan_result::ErrorPrerequisite;
+    }
+
+    if(loraSec.addTest(testOne) != Lorawan_result::Success)
+    {
+        writeLog(Logger::LorawanTest,"Error adding test");
+        return Lorawan_result::ErrorTest;
+    }
+
+    if(loraSec.startPrerequisites()  != Lorawan_result::Success)
+    {
+        writeLog(Logger::LorawanTest,"Error starting prerequisite");
+        return Lorawan_result::ErrorPrerequisite;
+    }
+
+    //printPackets();
+
+    if(loraSec.launchTest()  != Lorawan_result::Success)
+    {
+        writeLog(Logger::LorawanTest,"Error launching test");
+        return Lorawan_result::ErrorTest;
+    }
+
+    return Lorawan_result::Success;
+}
+
 
 Lorawan_result LorawanTester::printPackets()
 {

@@ -24,9 +24,10 @@ BruteforcingMIC::BruteforcingMIC()
 
 Lorawan_result BruteforcingMIC::launch()
 {
- PacketStorage *storage = PacketStorage::getInstance();
+    called(Logger::BruteforcingMIC);
+    PacketStorage *storage = PacketStorage::getInstance();
 
-    std::vector<std::shared_ptr<JoinRequestPacket> > requests = storage->getRequestPacket();
+
     std::vector<std::shared_ptr<DataPacket> > macPayloads = storage->getMacPayloadPacket();
 
     if(macPayloads.size() > 0)
@@ -54,6 +55,7 @@ Lorawan_result BruteforcingMIC::launch()
         return Lorawan_result::ErrorTest;
     }
 
+    writeLog(Logger::BruteforcingMIC, "Finished bruteforcing MIC test");
 
     return Lorawan_result::Success;
 }
@@ -61,8 +63,9 @@ Lorawan_result BruteforcingMIC::launch()
 Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dataPkt)
 {
     std::string jsonToSend{};
-    DataPacket copyPacket(dataPkt);
+    called(Logger::BruteforcingMIC);
 
+    DataPacket copyPacket(dataPkt);
     unsigned long int ulCount = Common::bytes2ULong(copyPacket.getFrameCounter());
 
     ulCount += 1;
@@ -70,7 +73,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
     copyPacket.setFrameCounter(Common::ulong2Bytes(ulCount));
 
 
-    if(copyPacket.serialialize() != Lorawan_result::Success) //updated rawPacket
+    if(copyPacket.serialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;
 
 
@@ -79,7 +82,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
         return Lorawan_result::ErrorCalcMIC;
     }
 
-    if(copyPacket.serialialize() != Lorawan_result::Success)
+    if(copyPacket.serialize() != Lorawan_result::Success)
         return Lorawan_result::ErrorSerialize;
 
 
@@ -107,6 +110,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
 Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> dataPkt)
 {
     std::string jsonToSend{};
+    called(Logger::BruteforcingMIC);
     DataPacket copyPacket(dataPkt);
 
 //    unsigned long int dosCount = Common::bytes2ULong(copyPacket.getFrameCounter());
@@ -116,7 +120,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
 //    copyPacket.setFrameCounter(Common::ulong2Bytes(dosCount));
 //    std::cout << "changed value of FCnt: " << Common::bytes2HexStr(copyPacket.getFrameCounter()) << std::endl;
 
-    if(copyPacket.serialialize() != Lorawan_result::Success) //updated rawPacket
+    if(copyPacket.serialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;
 
     if(Common::calculateMIC(copyPacket, true) != Lorawan_result::Success)
@@ -124,7 +128,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
         return Lorawan_result::ErrorCalcMIC;
     }
 
-    if(copyPacket.serialialize() != Lorawan_result::Success)
+    if(copyPacket.serialize() != Lorawan_result::Success)
         return Lorawan_result::ErrorSerialize;
 
 
@@ -150,8 +154,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
 
 Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<LorawanPacket> packet)
 {
-    //testDevice->setAppEUI(requestPkt->getAppEUI());
-    //testDevice->setDevEUI(requestPkt->getDevEUI());
+    called(Logger::BruteforcingMIC);
     testDevice->setEui64(packet->getEui64());
 
     uplink.setDstPort(packet->getDstPort());
@@ -164,6 +167,7 @@ Lorawan_result BruteforcingMIC::setUpSending(std::shared_ptr<LorawanPacket> pack
 Lorawan_result BruteforcingMIC::send(bytes magicFour, bytes eui64, std::string json)
 {
     bytes rawData;
+    called(Logger::BruteforcingMIC);
     bytes rawJson = Common::str2Bytes(json);
 
     rawData.insert(rawData.begin(),magicFour.begin(), magicFour.end());
@@ -175,48 +179,4 @@ Lorawan_result BruteforcingMIC::send(bytes magicFour, bytes eui64, std::string j
     writeLog(Logger::BruteforcingMIC, "data to send: \n" + dataToSend);
 
     return uplink.send(dataToSend);
-}
-
-Lorawan_result BruteforcingMIC::stop()
-{
-    return Lorawan_result::Success;
-}
-
-
-Lorawan_result BruteforcingMIC::printPackets()
-{
-    PacketStorage* storage = PacketStorage::getInstance();
-
-    writeLog(Logger::BruteforcingMIC,"Able to perform bruteforcing attack with below packets:");
-
-    std::vector<std::shared_ptr<JoinRequestPacket> > requestPackets = storage->getRequestPacket();
-    std::vector<std::shared_ptr<JoinAcceptPacket> > acceptPackets = storage->getAcceptPacket();
-    std::vector<std::shared_ptr<DataPacket> > dataPackets = storage->getMacPayloadPacket();
-
-    writeLog(Logger::BruteforcingMIC,"Available packets:");
-    writeLog(Logger::BruteforcingMIC,"Requests:" + std::to_string(requestPackets.size()));
-    writeLog(Logger::BruteforcingMIC, "Accepts:" + std::to_string(acceptPackets.size()));
-    writeLog(Logger::BruteforcingMIC,"Datas:" + std::to_string(dataPackets.size()));
-
-
-    for(auto &request: requestPackets)
-    {
-        writeLog(Logger::BruteforcingMIC,"next request packet:");
-        writeLog(Logger::BruteforcingMIC,Common::bytes2HexStr(request->getRawData()));
-    }
-
-
-    for(auto &accept: acceptPackets)
-    {
-        writeLog(Logger::BruteforcingMIC,"next accept packet:");
-        writeLog(Logger::BruteforcingMIC,Common::bytes2HexStr(accept->getRawData()));
-    }
-
-    for(auto &data: dataPackets)
-    {
-        writeLog(Logger::BruteforcingMIC,"next data packet:");
-        writeLog(Logger::BruteforcingMIC,Common::bytes2HexStr(data->getRawData()));
-    }
-
-    return Lorawan_result::Success;
 }
