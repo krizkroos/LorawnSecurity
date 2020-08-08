@@ -20,6 +20,7 @@ PacketStorage::PacketStorage()
 Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinRequestPacket> packet)
 {
     Lorawan_result rv = Lorawan_result::Success;
+    called(Logger::PacketData);
 
     if(packet->getType() == MsgType::JoinRequest)
     {
@@ -39,6 +40,7 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinRequestPacket> packe
 Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinAcceptPacket> packet)
 {
     Lorawan_result rv = Lorawan_result::Success;
+    called(Logger::PacketData);
 
     if(packet->getType() == MsgType::JoinAccept)
     {
@@ -58,6 +60,7 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinAcceptPacket> packet
 Lorawan_result PacketStorage::addPacket(std::shared_ptr<DataPacket> packet)
 {
     Lorawan_result rv = Lorawan_result::Success;
+    called(Logger::PacketData);
 
     if(packet->getType() == MsgType::MACPayload)
     {
@@ -74,17 +77,70 @@ Lorawan_result PacketStorage::addPacket(std::shared_ptr<DataPacket> packet)
     return rv;
 }
 
-Lorawan_result PacketStorage::findFirstDownlink(std::shared_ptr<DataPacket> &packet)
+Lorawan_result PacketStorage::findFirstDownlink(std::shared_ptr<DataPacket> &packet, bytes withDevAddr)
 {
+    called(Logger::PacketData);
     for(auto &pkt : macPayload)
     {
         if(pkt->getDirection() == "downlink")
         {
-            packet = pkt;
-            return Lorawan_result::Success;
+            if(withDevAddr.size() > 0)
+            {
+                if(pkt->isDevAddrSame(withDevAddr))
+                {
+                    packet = pkt;
+                    writeLog(Logger::PacketData, "found packet with correct devAddr");
+                    return Lorawan_result::Success;
+                }
+                else
+                {
+                    writeLog(Logger::PacketData, "Diffrent downlink devAddr");
+                    return Lorawan_result::NoValueAvailable;
+                }
+            }
+            else
+            {
+                packet = pkt;
+                writeLog(Logger::PacketData, "found packet with correct devAddr");
+                return Lorawan_result::Success;
+            }
+
         }
     }
    return Lorawan_result::NoValueAvailable;
+}
+
+Lorawan_result PacketStorage::findLastUplink(std::shared_ptr<DataPacket> &packet, bytes withDevAddr)
+{
+    called(Logger::PacketData);
+    std::vector<std::shared_ptr<DataPacket>>::reverse_iterator lastPkt = macPayload.rbegin();
+    for(; lastPkt != macPayload.rend(); ++lastPkt)
+    {
+        if((*lastPkt)->getDirection() == "uplink")
+        {
+            if(withDevAddr.size() > 0)
+            {
+                if((*lastPkt)->isDevAddrSame(withDevAddr))
+                {
+                    packet = (*lastPkt);
+                    return Lorawan_result::Success;
+                }
+                else
+                {
+                    writeLog(Logger::PacketData, "Diffrent uplink devAddr");
+                    return Lorawan_result::NoValueAvailable;
+                }
+            }
+            else
+            {
+                packet = (*lastPkt);
+                return Lorawan_result::Success;
+            }
+
+        }
+    }
+   return Lorawan_result::NoValueAvailable;
+
 }
 
 std::vector<std::shared_ptr<JoinAcceptPacket> > PacketStorage::getAcceptPacket() const

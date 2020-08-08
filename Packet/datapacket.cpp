@@ -29,6 +29,11 @@ void DataPacket::setDirection(const std::string &value)
     direction = value;
 }
 
+bool DataPacket::isDevAddrSame(bytes refDevAddr)
+{
+    return (devAddr == refDevAddr);
+}
+
 DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
 {
 

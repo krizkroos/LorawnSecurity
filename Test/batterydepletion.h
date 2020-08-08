@@ -9,7 +9,7 @@ class BatteryDepletion  : public LorawanTest
 private:
     SendController downlink;
     Lorawan_result setUpSending(std::shared_ptr<LorawanPacket> packet);
-    Lorawan_result sendExtraPacket(std::shared_ptr<DataPacket> downlinkPacket);
+    Lorawan_result sendExtraDownlinkPacket(std::shared_ptr<DataPacket> downlinkPacket);
     Lorawan_result send(bytes magicFour, std::string json);
 public:
     BatteryDepletion();

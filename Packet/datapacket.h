@@ -25,6 +25,7 @@ public:
     bytes getDevAddr() const;
     std::string getDirection() const;
     void setDirection(const std::string &value);
+    bool isDevAddrSame(bytes refDevAddr);
 };
 
 #endif // DATAPACKET_H

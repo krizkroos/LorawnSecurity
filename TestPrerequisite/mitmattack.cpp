@@ -103,7 +103,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
               rawJson = bytes(serializedData.begin() +12, serializedData.end()); // omit EUI
               jsonString = Common::bytes2Str(rawJson);
               jParser.parse(jsonString);
-
+              writeLog(Logger::Packet,"UPLINK packet with IP.id = " + std::to_string(ip.id()));
               getLorawanData= jParser.getValue(jsonKeys({"rxpk","data"}),lorawanData);
             }
             else if(serializedData.at(1) == 0x00)
@@ -112,7 +112,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
               rawJson = bytes(serializedData.begin() +4, serializedData.end()); // omit magic four
               jsonString = Common::bytes2Str(rawJson);
               jParser.parse(jsonString);
-
+              writeLog(Logger::Packet,"DOWNLINK packet with IP.id = " + std::to_string(ip.id()));
               getLorawanData= jParser.getValue(jsonKeys({"txpk","data"}),lorawanData);
 
             }

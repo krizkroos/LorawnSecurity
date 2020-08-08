@@ -37,7 +37,7 @@ Lorawan_result BruteforcingMIC::launch()
             return Lorawan_result::ErrorTestSetUp;
         }
 
-            std::shared_ptr<DataPacket> firstPayload = macPayloads.back(); // based on number
+            std::shared_ptr<DataPacket> firstPayload = macPayloads.back();
 
             if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
             {

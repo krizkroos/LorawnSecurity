@@ -21,7 +21,7 @@ BatteryDepletion::BatteryDepletion()
 
 }
 
-Lorawan_result BatteryDepletion::sendExtraPacket(std::shared_ptr<DataPacket> downlinkPacket)
+Lorawan_result BatteryDepletion::sendExtraDownlinkPacket(std::shared_ptr<DataPacket> downlinkPacket)
 {
     std::string jsonToSend{};
     called(Logger::BatteryDepletion);
@@ -63,9 +63,16 @@ Lorawan_result BatteryDepletion::launch()
 
     PacketStorage *storage = PacketStorage::getInstance();
 
-    std::shared_ptr<DataPacket> downlinkPacket;
+    std::shared_ptr<DataPacket> downlinkPacket, uplinkPacket;
 
-    if(storage->findFirstDownlink(downlinkPacket) == Lorawan_result::Success)
+    if(storage->findLastUplink(uplinkPacket) != Lorawan_result::Success)
+    {
+        writeLog(Logger::BatteryDepletion, "No preceding uplink packet");
+        return Lorawan_result::ErrorTest;
+    }
+
+    // comparing with devAddr of received uplink to send in correct RX window
+    if(storage->findFirstDownlink(downlinkPacket, uplinkPacket->getDevAddr()) == Lorawan_result::Success)
     {
         if(!downlinkPacket)
         {
@@ -73,7 +80,7 @@ Lorawan_result BatteryDepletion::launch()
            return Lorawan_result::ErrorTestSetUp;
         }
 
-//        writeLog(Logger::BatteryDepletion, "Timeout for 1 s");
+//        writeLog(Logger::BatteryDepletion, "Timeout for 1 s"); #in TTN server the downlink messages are queued
 //        std::chrono::milliseconds timespan(1000);
 //        std::this_thread::sleep_for(timespan);
 
@@ -82,7 +89,7 @@ Lorawan_result BatteryDepletion::launch()
             return Lorawan_result::ErrorTestSetUp;
         }
 
-        if(sendExtraPacket(downlinkPacket) != Lorawan_result::Success)
+        if(sendExtraDownlinkPacket(downlinkPacket) != Lorawan_result::Success)
         {
             return Lorawan_result::ErrorTest;
         }

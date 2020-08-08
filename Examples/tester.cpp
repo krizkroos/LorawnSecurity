@@ -107,7 +107,7 @@ Lorawan_result LorawanTester::testMIC(TestParams params)
         return Lorawan_result::ErrorPrerequisite;
     }
 
-    printPackets();
+    //printPackets();
 
     if(loraSec.launchTest()  != Lorawan_result::Success)
     {
@@ -130,14 +130,12 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
         return Lorawan_result::ErrorTestSetUp;
     }
 
-
-
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
     std::map<SniffingPackets, int> wantedPacket;
 
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 1));
-    wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
+    //wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
 
     std::shared_ptr<MiTMAttack> mitmCollectDownlink = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
     mitmCollectDownlink->setName("MiTM");
@@ -164,13 +162,13 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
         return Lorawan_result::ErrorPrerequisite;
     }
 
-    printPackets();
+    //printPackets();
 
-    if(loraSec.launchTest()  != Lorawan_result::Success)
-    {
-        writeLog(Logger::LorawanTest,"Error launching test");
-        return Lorawan_result::ErrorTest;
-    }
+//    if(loraSec.launchTest()  != Lorawan_result::Success)
+//    {
+//        writeLog(Logger::LorawanTest,"Error launching test");
+//        return Lorawan_result::ErrorTest;
+//    }
 
     wantedPacket.clear();
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
