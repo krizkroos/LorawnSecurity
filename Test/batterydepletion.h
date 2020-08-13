@@ -12,7 +12,6 @@ private:
     Lorawan_result sendExtraDownlinkPacket(std::shared_ptr<DataPacket> downlinkPacket);
     Lorawan_result send(bytes magicFour, std::string json);
 public:
-    BatteryDepletion();
     virtual Lorawan_result launch() override;
 };
 

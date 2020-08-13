@@ -1,8 +1,8 @@
 #ifndef UPLINKCONTROLLER_H
 #define UPLINKCONTROLLER_H
 
-#include "tins/tins.h"
 #include "defineLorawan.h"
+#include "tins/tins.h"
 
 class SendController
 {
@@ -14,7 +14,6 @@ private:
     uint16_t srcPort;
     bytes eui64;
 public:
-    SendController();
     Lorawan_result send(std::string rawData);
 
     void setIP(const Tins::IP &value);

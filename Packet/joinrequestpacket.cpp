@@ -4,37 +4,6 @@
 
 #include <iostream>
 
-
-bytes JoinRequestPacket::getAppEUI() const
-{
-    return appEUI;
-}
-
-void JoinRequestPacket::setAppEUI(const bytes &value)
-{
-    appEUI = value;
-}
-
-bytes JoinRequestPacket::getDevEUI() const
-{
-    return devEUI;
-}
-
-void JoinRequestPacket::setDevEUI(const bytes &value)
-{
-    devEUI = value;
-}
-
-bytes JoinRequestPacket::getDevNonce() const
-{
-    return devNonce;
-}
-
-void JoinRequestPacket::setDevNonce(const bytes &value)
-{
-    devNonce = value;
-}
-
 JoinRequestPacket::JoinRequestPacket() : LorawanPacket(MsgType::JoinRequest)
 {
 
@@ -135,4 +104,35 @@ Lorawan_result JoinRequestPacket::serialize()
 
 
     return Lorawan_result::Success;
+}
+
+
+bytes JoinRequestPacket::getAppEUI() const
+{
+    return appEUI;
+}
+
+void JoinRequestPacket::setAppEUI(const bytes &value)
+{
+    appEUI = value;
+}
+
+bytes JoinRequestPacket::getDevEUI() const
+{
+    return devEUI;
+}
+
+void JoinRequestPacket::setDevEUI(const bytes &value)
+{
+    devEUI = value;
+}
+
+bytes JoinRequestPacket::getDevNonce() const
+{
+    return devNonce;
+}
+
+void JoinRequestPacket::setDevNonce(const bytes &value)
+{
+    devNonce = value;
 }

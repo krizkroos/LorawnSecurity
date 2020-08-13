@@ -105,7 +105,7 @@ Lorawan_result LorawanPacket::setIP(std::string dstAddr, Tins::IP::Flags flags, 
 
 LorawanPacket::LorawanPacket(const std::shared_ptr<LorawanPacket> packet)
 {
-     _type = packet->_type;
+    _type = packet->_type;
     rawPacket= packet->rawPacket;
     jsonString= packet->jsonString;
     MIC= packet->MIC;

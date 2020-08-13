@@ -1,18 +1,19 @@
 #ifndef MITMATTACK_H
 #define MITMATTACK_H
 
+#include "defineLorawan.h"
 #include "testprerequisite.h"
+
 #include "Packet/lorawanpacket.h"
 #include "packetstorage.h"
-
 #include "tins/tins.h"
 
-#include <map>
+
 
 enum class SniffingPackets
 {
     Downlink,
-    Uplink, 
+    Uplink,
     Request,
     Accept
 };
@@ -33,9 +34,8 @@ private:
 
 public:
     MiTMAttack(std::map<SniffingPackets, int> wantedPacket, std::string filter, std::string interface);
-    MiTMAttack();
+    MiTMAttack() = default;
     virtual Lorawan_result start() override;
-    virtual Lorawan_result stop() override;
 
     Lorawan_result sniffing(std::string interface, std::string filter);
 

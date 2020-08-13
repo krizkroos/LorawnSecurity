@@ -14,8 +14,13 @@ PacketStorage* PacketStorage::getInstance()
     return instance;
 }
 
-PacketStorage::PacketStorage()
-{}
+void PacketStorage::deleteInstance()
+{
+    if(instance != nullptr)
+    {
+        delete instance;
+    }
+}
 
 Lorawan_result PacketStorage::addPacket(std::shared_ptr<JoinRequestPacket> packet)
 {
@@ -107,7 +112,7 @@ Lorawan_result PacketStorage::findFirstDownlink(std::shared_ptr<DataPacket> &pac
 
         }
     }
-   return Lorawan_result::NoValueAvailable;
+    return Lorawan_result::NoValueAvailable;
 }
 
 Lorawan_result PacketStorage::findLastUplink(std::shared_ptr<DataPacket> &packet, bytes withDevAddr)
@@ -139,7 +144,7 @@ Lorawan_result PacketStorage::findLastUplink(std::shared_ptr<DataPacket> &packet
 
         }
     }
-   return Lorawan_result::NoValueAvailable;
+    return Lorawan_result::NoValueAvailable;
 
 }
 

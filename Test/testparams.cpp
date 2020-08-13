@@ -80,8 +80,3 @@ void TestParams::setNwkSKey(const bytes &value)
 {
     nwkSKey = value;
 }
-
-TestParams::TestParams()
-{
-    
-}

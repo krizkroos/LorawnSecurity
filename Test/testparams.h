@@ -1,7 +1,7 @@
 #ifndef TESTPARAMS_H
 #define TESTPARAMS_H
 
-#include <string>
+#include "defineLorawan.h"
 #include "Utils/logger.h"
 
 class TestParams
@@ -17,7 +17,6 @@ private:
 
     bytes nwkSKey;
 public:
-    TestParams();
     std::string getLogFileName() const;
     void setLogFileName(const std::string &value);
     unsigned long long int getLogLevel() const;

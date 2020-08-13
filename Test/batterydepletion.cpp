@@ -16,8 +16,53 @@ Lorawan_result BatteryDepletion::setUpSending(std::shared_ptr<LorawanPacket> pac
     return Lorawan_result::Success;
 }
 
-BatteryDepletion::BatteryDepletion()
+Lorawan_result BatteryDepletion::launch()
 {
+    writeLog(Logger::BatteryDepletion, "Launching battery attack");
+
+    PacketStorage *storage = PacketStorage::getInstance();
+
+    std::shared_ptr<DataPacket> downlinkPacket, uplinkPacket;
+
+    if(storage->findLastUplink(uplinkPacket) != Lorawan_result::Success)
+    {
+        writeLog(Logger::BatteryDepletion, "No preceding uplink packet");
+        return Lorawan_result::ErrorTest;
+    }
+
+    // comparing with devAddr of received uplink to send in correct RX window
+    if(storage->findFirstDownlink(downlinkPacket, uplinkPacket->getDevAddr()) == Lorawan_result::Success)
+    {
+        if(!downlinkPacket)
+        {
+            writeLog(Logger::BatteryDepletion, " no downlink packet available");
+            return Lorawan_result::ErrorTestSetUp;
+        }
+
+        //        writeLog(Logger::BatteryDepletion, "Timeout for 1 s"); #in TTN server the downlink messages are queued
+        //        std::chrono::milliseconds timespan(1000);
+        //        std::this_thread::sleep_for(timespan);
+
+        if(setUpSending(downlinkPacket) != Lorawan_result::Success)
+        {
+            return Lorawan_result::ErrorTestSetUp;
+        }
+
+        if(sendExtraDownlinkPacket(downlinkPacket) != Lorawan_result::Success)
+        {
+            return Lorawan_result::ErrorTest;
+        }
+
+        return Lorawan_result::Success;
+
+    } else
+    {
+        writeLog(Logger::BatteryDepletion, "No available packets to perform attack");
+    }
+
+    writeLog(Logger::BatteryDepletion, "Finished battery depletion test");
+
+    return Lorawan_result::Success;
 
 }
 
@@ -49,62 +94,12 @@ Lorawan_result BatteryDepletion::sendExtraDownlinkPacket(std::shared_ptr<DataPac
     writeLog(Logger::BruteforcingMIC,"packet is based on IP with id = " + std::to_string(refIP.id()));
 
     if(send(copyPacket.getMagicFour(), jsonToSend) != Lorawan_result::Success)
-        {
-            writeLog(Logger::BatteryDepletion,"error sending extra downlink packet!");
-        }
+    {
+        writeLog(Logger::BatteryDepletion,"error sending extra downlink packet!");
+    }
 
 
     return Lorawan_result::Success;
-}
-
-Lorawan_result BatteryDepletion::launch()
-{
-    writeLog(Logger::BatteryDepletion, "Launching battery attack");
-
-    PacketStorage *storage = PacketStorage::getInstance();
-
-    std::shared_ptr<DataPacket> downlinkPacket, uplinkPacket;
-
-    if(storage->findLastUplink(uplinkPacket) != Lorawan_result::Success)
-    {
-        writeLog(Logger::BatteryDepletion, "No preceding uplink packet");
-        return Lorawan_result::ErrorTest;
-    }
-
-    // comparing with devAddr of received uplink to send in correct RX window
-    if(storage->findFirstDownlink(downlinkPacket, uplinkPacket->getDevAddr()) == Lorawan_result::Success)
-    {
-        if(!downlinkPacket)
-        {
-           writeLog(Logger::BatteryDepletion, " no downlink packet available");
-           return Lorawan_result::ErrorTestSetUp;
-        }
-
-//        writeLog(Logger::BatteryDepletion, "Timeout for 1 s"); #in TTN server the downlink messages are queued
-//        std::chrono::milliseconds timespan(1000);
-//        std::this_thread::sleep_for(timespan);
-
-        if(setUpSending(downlinkPacket) != Lorawan_result::Success)
-        {
-            return Lorawan_result::ErrorTestSetUp;
-        }
-
-        if(sendExtraDownlinkPacket(downlinkPacket) != Lorawan_result::Success)
-        {
-            return Lorawan_result::ErrorTest;
-        }
-
-        return Lorawan_result::Success;
-
-    } else
-    {
-        writeLog(Logger::BatteryDepletion, "No available packets to perform attack");
-    }
-
-    writeLog(Logger::BatteryDepletion, "Finished battery depletion test");
-
-    return Lorawan_result::Success;
-
 }
 
 Lorawan_result BatteryDepletion::send(bytes magicFour, std::string json)

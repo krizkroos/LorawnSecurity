@@ -7,7 +7,7 @@
 class RequestDoS : public LorawanTest
 {
 public:
-    RequestDoS();
+    RequestDoS() = default;
     RequestDoS(int requestCounter);
 
     virtual Lorawan_result launch() override;

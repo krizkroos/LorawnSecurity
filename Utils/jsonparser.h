@@ -14,7 +14,6 @@ class JsonParser
 private:
     Document map;
 public:
-    JsonParser();
     std::string getJson();
     Lorawan_result parse(std::string json);
 

@@ -10,7 +10,6 @@
 class LorawanSecurity
 {
 public:
-    LorawanSecurity();
     Lorawan_result startPrerequisites();
     Lorawan_result launchTest();
     Lorawan_result addTest(std::shared_ptr<LorawanTest> test);

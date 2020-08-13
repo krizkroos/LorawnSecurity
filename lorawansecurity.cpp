@@ -1,11 +1,7 @@
 #include "lorawansecurity.h"
 #include <iostream>
 #include "Utils/logger.h"
-
-LorawanSecurity::LorawanSecurity()
-{
-
-}
+#include "packetstorage.h"
 
 Lorawan_result LorawanSecurity::addTest(std::shared_ptr<LorawanTest> test)
 {
@@ -47,6 +43,7 @@ Lorawan_result LorawanSecurity::startPrerequisites()
             if(result != Lorawan_result::Success)
             {
                 writeLog(Logger::LorawanTest, "Error starting condition");
+                PacketStorage::deleteInstance();
                 return result;
             }
             else
@@ -69,8 +66,10 @@ Lorawan_result LorawanSecurity::launchTest()
         if(result != Lorawan_result::Success)
         {
             writeLog(Logger::LorawanTest,"starting test failed");
+            PacketStorage::deleteInstance();
             return result;
         }
     }
+    PacketStorage::deleteInstance();
     return result;
 }

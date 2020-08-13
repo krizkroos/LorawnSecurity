@@ -11,10 +11,6 @@
 unsigned long long int Logger::_currentLevel = 0;
 std::string Logger::_filename{};
 
-Logger::Logger()
-{
-
-}
 Logger::Logger(std::string filename, unsigned long long int level)
 {
     _filename = filename;
@@ -144,7 +140,7 @@ std::string Logger::parseLevel(unsigned long long level)
     case Logger::Packet:
         return "Packet";
     case Logger::LorawanTest:
-       return "LorawanTest";
+        return "LorawanTest";
     case Logger::MiTM:
         return "MiTM";
     case Logger::Security:

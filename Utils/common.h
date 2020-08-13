@@ -3,12 +3,11 @@
 
 #include "defineLorawan.h"
 #include "packetstorage.h"
-#include <string>
+
 
 class Common
 {
 public:
-    Common();
     static std::string bytes2Str(bytes input);
     static std::string bytes2HexStr(bytes input, bool withSpace=true, bool withBreaks = false);
     static bytes str2Bytes(std::string input);

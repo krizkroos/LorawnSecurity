@@ -2,9 +2,9 @@
 #define LOGGER_H
 
 #include <sys/time.h>
-#include "tins/tins.h"
-#include <string>
+
 #include "defineLorawan.h"
+#include "tins/tins.h"
 
 #define FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
@@ -17,7 +17,7 @@
 class Logger
 {
 public:
-    enum LogLevel{      
+    enum LogLevel{
         Device,
         Packet,
         LorawanTest,
@@ -31,7 +31,7 @@ public:
         PacketData,
         RawData
     };
-    Logger();
+    Logger() = default;
     Logger(std::string filename, unsigned long long int level);
     static Lorawan_result write(unsigned long long int level, std::string file, std::string function, int line, std::string content);
     static Lorawan_result writeHex(unsigned long long int level, std::string file, std::string function, int line, bytes content, bool withSpace);

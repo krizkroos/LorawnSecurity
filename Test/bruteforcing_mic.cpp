@@ -9,16 +9,16 @@
 
 BruteforcingMIC::BruteforcingMIC()
 {
-//     auto startFactoring = std::chrono::high_resolution_clock::now();
+    //     auto startFactoring = std::chrono::high_resolution_clock::now();
 
-//    for(unsigned long int i=1; i < 4294967295; i++)
-//    {
-//        micValues.emplace_back(Common::ulong2Bytes(i));
-//    }
+    //    for(unsigned long int i=1; i < 4294967295; i++)
+    //    {
+    //        micValues.emplace_back(Common::ulong2Bytes(i));
+    //    }
 
-//    auto stop = std::chrono::high_resolution_clock::now();
-//    auto duration = std::chrono::duration_cast<std::chrono::duration<int64_t, std::milli>>( stop - startFactoring ).count();
-//    std::cout << "all MIC were generated in : " << duration  << " ms" << std::endl;
+    //    auto stop = std::chrono::high_resolution_clock::now();
+    //    auto duration = std::chrono::duration_cast<std::chrono::duration<int64_t, std::milli>>( stop - startFactoring ).count();
+    //    std::cout << "all MIC were generated in : " << duration  << " ms" << std::endl;
 
 }
 
@@ -37,17 +37,17 @@ Lorawan_result BruteforcingMIC::launch()
             return Lorawan_result::ErrorTestSetUp;
         }
 
-            std::shared_ptr<DataPacket> firstPayload = macPayloads.back();
+        std::shared_ptr<DataPacket> firstPayload = macPayloads.back();
 
-            if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
-            {
-                return Lorawan_result::ErrorTestSetUp;
-            }
+        if(sendGuardPacket(firstPayload) != Lorawan_result::Success)
+        {
+            return Lorawan_result::ErrorTestSetUp;
+        }
 
-            if(sendDeathPacket(firstPayload) != Lorawan_result::Success)
-            {
-                return Lorawan_result::ErrorTest;
-            }
+        if(sendDeathPacket(firstPayload) != Lorawan_result::Success)
+        {
+            return Lorawan_result::ErrorTest;
+        }
 
     } else
     {
@@ -106,19 +106,18 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
     return Lorawan_result::Success;
 }
 
-
 Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> dataPkt)
 {
     std::string jsonToSend{};
     called(Logger::BruteforcingMIC);
     DataPacket copyPacket(dataPkt);
 
-//    unsigned long int dosCount = Common::bytes2ULong(copyPacket.getFrameCounter());
+    //    unsigned long int dosCount = Common::bytes2ULong(copyPacket.getFrameCounter());
 
-//    dosCount += 1;
+    //    dosCount += 1;
 
-//    copyPacket.setFrameCounter(Common::ulong2Bytes(dosCount));
-//    std::cout << "changed value of FCnt: " << Common::bytes2HexStr(copyPacket.getFrameCounter()) << std::endl;
+    //    copyPacket.setFrameCounter(Common::ulong2Bytes(dosCount));
+    //    std::cout << "changed value of FCnt: " << Common::bytes2HexStr(copyPacket.getFrameCounter()) << std::endl;
 
     if(copyPacket.serialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;

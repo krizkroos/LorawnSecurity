@@ -14,11 +14,6 @@
 #include "lorawansecurity.h"
 #include <map>
 
-LorawanTester::LorawanTester()
-{
-
-}
-
 Lorawan_result LorawanTester::checkTestParams(TestParams params)
 {
     std::string logfileName = params.getLogFileName();
@@ -164,11 +159,11 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
 
     //printPackets();
 
-//    if(loraSec.launchTest()  != Lorawan_result::Success)
-//    {
-//        writeLog(Logger::LorawanTest,"Error launching test");
-//        return Lorawan_result::ErrorTest;
-//    }
+    //    if(loraSec.launchTest()  != Lorawan_result::Success)
+    //    {
+    //        writeLog(Logger::LorawanTest,"Error launching test");
+    //        return Lorawan_result::ErrorTest;
+    //    }
 
     wantedPacket.clear();
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
@@ -215,7 +210,7 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
     }
 
 
-   return Lorawan_result::Success;
+    return Lorawan_result::Success;
 }
 
 Lorawan_result LorawanTester::testDoSRequest(TestParams params)

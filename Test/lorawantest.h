@@ -6,14 +6,12 @@
 #include "Packet/sendcontroller.h"
 #include "TestPrerequisite/testprerequisite.h"
 
-#include <memory>
-
 class LorawanTest
 {
 protected:
-  std::shared_ptr<LorawanDevice> testDevice;
-  std::vector<std::shared_ptr<TestPrerequisite>> prerequisite;
-  std::string description;
+    std::string description;
+    std::shared_ptr<LorawanDevice> testDevice;
+    std::vector<std::shared_ptr<TestPrerequisite>> prerequisite;
 
 
 public:

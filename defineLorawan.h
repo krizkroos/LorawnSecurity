@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <map>
+#include <string>
+
 enum class Lorawan_result
 {
     Success,
@@ -34,5 +37,6 @@ typedef std::vector<byte> bytes;
 typedef std::vector<std::string> jsonKeys;
 
 #define UNUSED(x) (void)(x)
+
 #endif // DEFINELORAWAN_H
 

@@ -8,7 +8,6 @@
 class LorawanTester
 {
 public:
-    LorawanTester();
     Lorawan_result testMIC(TestParams params);
     Lorawan_result testBatteryDeplation(TestParams params);
     Lorawan_result testDoSRequest(TestParams params);

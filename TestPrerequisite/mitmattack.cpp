@@ -30,17 +30,12 @@ MiTMAttack::MiTMAttack(std::map<SniffingPackets, int> wantedPacket, std::string 
     }
     else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
     {
-         writeLog(Logger::MiTM, "(constructor) Looking for Downlink packets");
+        writeLog(Logger::MiTM, "(constructor) Looking for Downlink packets");
     }
 
 
     _filter = filter;
     _interface =interface;
-
-}
-
-MiTMAttack::MiTMAttack()
-{
 
 }
 
@@ -60,11 +55,6 @@ Lorawan_result MiTMAttack::start()
     result = sniffing(_interface, _filter);
     return result;
 
-}
-
-Lorawan_result MiTMAttack::stop()
-{
-    return Lorawan_result::Success;
 }
 
 
@@ -90,30 +80,30 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
             writeHexLog(Logger::RawData, serializedData);
             writeLog(Logger::MiTM, "looking for type of lorawan data");
 
-             bytes rawJson{};
-             std::string jsonString{};
-             JsonParser jParser;
-             Lorawan_result getLorawanData = Lorawan_result::Success;
-             std::string lorawanData{};
+            bytes rawJson{};
+            std::string jsonString{};
+            JsonParser jParser;
+            Lorawan_result getLorawanData = Lorawan_result::Success;
+            std::string lorawanData{};
 
             if(serializedData.at(3) == 0x00)
                 //TODO why to omit first three bytes and why 0x00 indicates wanted rx packet
             {
-              writeLog(Logger::MiTM, "UPLINK lorawan packet");
-              rawJson = bytes(serializedData.begin() +12, serializedData.end()); // omit EUI
-              jsonString = Common::bytes2Str(rawJson);
-              jParser.parse(jsonString);
-              writeLog(Logger::Packet,"UPLINK packet with IP.id = " + std::to_string(ip.id()));
-              getLorawanData= jParser.getValue(jsonKeys({"rxpk","data"}),lorawanData);
+                writeLog(Logger::MiTM, "UPLINK lorawan packet");
+                rawJson = bytes(serializedData.begin() +12, serializedData.end()); // omit EUI
+                jsonString = Common::bytes2Str(rawJson);
+                jParser.parse(jsonString);
+                writeLog(Logger::Packet,"UPLINK packet with IP.id = " + std::to_string(ip.id()));
+                getLorawanData= jParser.getValue(jsonKeys({"rxpk","data"}),lorawanData);
             }
             else if(serializedData.at(1) == 0x00)
             {
-              writeLog(Logger::MiTM, "DOWNLINK lorawan packet");
-              rawJson = bytes(serializedData.begin() +4, serializedData.end()); // omit magic four
-              jsonString = Common::bytes2Str(rawJson);
-              jParser.parse(jsonString);
-              writeLog(Logger::Packet,"DOWNLINK packet with IP.id = " + std::to_string(ip.id()));
-              getLorawanData= jParser.getValue(jsonKeys({"txpk","data"}),lorawanData);
+                writeLog(Logger::MiTM, "DOWNLINK lorawan packet");
+                rawJson = bytes(serializedData.begin() +4, serializedData.end()); // omit magic four
+                jsonString = Common::bytes2Str(rawJson);
+                jParser.parse(jsonString);
+                writeLog(Logger::Packet,"DOWNLINK packet with IP.id = " + std::to_string(ip.id()));
+                getLorawanData= jParser.getValue(jsonKeys({"txpk","data"}),lorawanData);
 
             }
             else
@@ -284,7 +274,7 @@ bool MiTMAttack::checkSniffedNumber()
     }
     else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
     {
-         writeLog(Logger::MiTM, "(check) Looking for Downlink packets");
+        writeLog(Logger::MiTM, "(check) Looking for Downlink packets");
     }
 
 
@@ -305,7 +295,7 @@ bool MiTMAttack::checkSniffedNumber()
             }
             else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
             {
-                 writeLog(Logger::MiTM, "Looking for Downlink packets");
+                writeLog(Logger::MiTM, "Looking for Downlink packets");
             }
 
             MiTMAttack::_sniffedPacketNum = 0;
@@ -325,7 +315,7 @@ void MiTMAttack::incrementSniffed()
     }
     else if (MiTMAttack::_currentWantedPacket == SniffingPackets::Downlink)
     {
-         writeLog(Logger::MiTM, "Looking for Downlink packets");
+        writeLog(Logger::MiTM, "Looking for Downlink packets");
     }
 
     writeLog(Logger::MiTM,"incremented sniffed and wanted packet counter");

@@ -35,23 +35,16 @@ protected:
     uint16_t dstPort;
     uint16_t srcPort;
 public:
-    LorawanDevice();
+    LorawanDevice() = default;
     Lorawan_result isValid();
     LorawanDevice(lorawanVersion ver);
     bytes getDevEUI() const;
     void setDevEUI(const bytes &value);
     bytes getAppEUI() const;
     void setAppEUI(const bytes &value);
-    bytes getMagicFour() const;
-    void setMagicFour(const bytes &value);
     bytes getEui64() const;
     void setEui64(const bytes &value);
-    Tins::IP getDestinationAddress() const;
-    void setDestinationAddress(const Tins::IP &value);
-    uint16_t getDstPort() const;
-    void setDstPort(const uint16_t &value);
-    uint16_t getSrcPort() const;
-    void setSrcPort(const uint16_t &value);
+
 };
 
 #endif // LORAWANDEVICE_H

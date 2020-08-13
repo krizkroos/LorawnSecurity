@@ -18,10 +18,6 @@
 
 unsigned long int Common::MAX_FCNT_GAP = 1;
 bytes Common::nwkSKey = {0xC5,0xCD,0x1F,0x3F,0x85,0x40,0xF0,0xC8,0xA0,0x0F,0x3F,0x5E,0x62,0x44,0x32,0xA0};
-Common::Common()
-{
-
-}
 
 std::string Common::bytes2Str(bytes input)
 {
@@ -65,12 +61,12 @@ std::string Common::bytes2HexStr(bytes input, bool withSpace, bool withBreaks)
 
         if(withBreaks)
         {
-           if(++counter == 20) // first line is also good
-           {
-               stream << "\n";
-               counter =0;
-               continue;
-           }
+            if(++counter == 20) // first line is also good
+            {
+                stream << "\n";
+                counter =0;
+                continue;
+            }
         }
 
         if(withSpace)
@@ -232,8 +228,8 @@ Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
 
     while(nextByte != _rawPacket.end() -4)
     {
-       _msg.emplace_back(*nextByte);
-       nextByte++;
+        _msg.emplace_back(*nextByte);
+        nextByte++;
     }
 
     if(_msg.empty())
@@ -290,7 +286,7 @@ Lorawan_result Common::createJsonToSend(bytes rawPacket, std::string refJson, st
     writeLog(Logger::BruteforcingMIC," changed: " + jsonToSend );
 
 
-      return Lorawan_result::Success;
+    return Lorawan_result::Success;
 }
 
 Lorawan_result Common::decodeBase64(bytes input, bytes& decoded)
@@ -302,7 +298,7 @@ Lorawan_result Common::decodeBase64(bytes input, bytes& decoded)
 
     called(Logger::Common);
     if(input.size() == 0)
-       return Lorawan_result::InputSizeZero;
+        return Lorawan_result::InputSizeZero;
 
     decoded.clear();
     std::string tmp = Common::bytes2Str(input);
@@ -341,7 +337,7 @@ Lorawan_result Common::encodeBase64(bytes input, bytes &encoded)
     Lorawan_result rv = Lorawan_result::Success;
     called(Logger::Common);
     if(input.size() == 0)
-       return Lorawan_result::InputSizeZero;
+        return Lorawan_result::InputSizeZero;
 
     encoded.clear();
 
@@ -368,8 +364,8 @@ Lorawan_result Common::calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac)
 {
     unsigned char mact[16] = {0};
     size_t mactlen;
-   unsigned char *key = reinterpret_cast<unsigned char*>(&keyVal.at(0));
-   unsigned char *message = reinterpret_cast<unsigned char*>(&msgVal.at(0));
+    unsigned char *key = reinterpret_cast<unsigned char*>(&keyVal.at(0));
+    unsigned char *message = reinterpret_cast<unsigned char*>(&msgVal.at(0));
     called(Logger::Common);
     CMAC_CTX *ctx = CMAC_CTX_new();
     CMAC_Init(ctx, key, 16, EVP_aes_128_cbc(), NULL);
@@ -399,57 +395,57 @@ Lorawan_result Common::calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac)
 Lorawan_result Common::encrypt_aes128(bytes key, bytes message, bytes encMsg)
 {
 
-//    EVP_CIPHER_CTX *ctx;
+    //    EVP_CIPHER_CTX *ctx;
 
-//        int len;
+    //        int len;
 
-//        int ciphertext_len;
+    //        int ciphertext_len;
 
-//        /* Create and initialise the context */
-//        if(!(ctx = EVP_CIPHER_CTX_new()))
-//        {
+    //        /* Create and initialise the context */
+    //        if(!(ctx = EVP_CIPHER_CTX_new()))
+    //        {
 
-//        }
+    //        }
 
 
-//        /*
-//         * Initialise the encryption operation. IMPORTANT - ensure you use a key
-//         * and IV size appropriate for your cipher
-//         * In this example we are using 256 bit AES (i.e. a 256 bit key). The
-//         * IV size for *most* modes is the same as the block size. For AES this
-//         * is 128 bits
-//         */
-//        if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
-//        {
+    //        /*
+    //         * Initialise the encryption operation. IMPORTANT - ensure you use a key
+    //         * and IV size appropriate for your cipher
+    //         * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+    //         * IV size for *most* modes is the same as the block size. For AES this
+    //         * is 128 bits
+    //         */
+    //        if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
+    //        {
 
-//        }
+    //        }
 
-//        /*
-//         * Provide the message to be encrypted, and obtain the encrypted output.
-//         * EVP_EncryptUpdate can be called multiple times if necessary
-//         */
-//        if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-//        {
-//        }
+    //        /*
+    //         * Provide the message to be encrypted, and obtain the encrypted output.
+    //         * EVP_EncryptUpdate can be called multiple times if necessary
+    //         */
+    //        if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+    //        {
+    //        }
 
-//        ciphertext_len = len;
+    //        ciphertext_len = len;
 
-//        /*
-//         * Finalise the encryption. Further ciphertext bytes may be written at
-//         * this stage.
-//         */
-//        if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
-//        {
+    //        /*
+    //         * Finalise the encryption. Further ciphertext bytes may be written at
+    //         * this stage.
+    //         */
+    //        if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
+    //        {
 
-//        }
-//        ciphertext_len += len;
+    //        }
+    //        ciphertext_len += len;
 
-//        /* Clean up */
-//        EVP_CIPHER_CTX_free(ctx);
+    //        /* Clean up */
+    //        EVP_CIPHER_CTX_free(ctx);
 
-//        return ciphertext_len;
+    //        return ciphertext_len;
 
-//    return Lorawan_result::Success;
+    //    return Lorawan_result::Success;
 }
 
 Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &littleEndianValue)
@@ -486,7 +482,7 @@ Lorawan_result Common::convertToBigEndian(bytes littleEndianValue, bytes &bigEnd
         bigEndianValue.at(static_cast<size_t>(newPos)) = littleEndianValue.at(index);
     }
 
-   return Lorawan_result::Success;
+    return Lorawan_result::Success;
 }
 
 Lorawan_result Common::convertIPAddress(const bytes address, bytes &convertedAddr)
@@ -521,7 +517,7 @@ Lorawan_result Common::testDecodingEncoding()
         {"II9uo5ycgdFjz/RVwUO88Q+vnqghauvzU9kSal2wUwFu", bytes({0x20,0x8F,0x6E,0xA3,0x9C,0x9C,0x81,0xD1,0x63,0xCF,0xF4,0x55,0xC1,0x43,0xBC,0xF1,0x0F,0xAF,0x9E,0xA8,0x21,0x6A,0xEB,                       0xF3,0x53,0xD9,0x12,0x6A,0x5D,0xB0,0x53,0x01,0x6E})},
         {"QOYoASYAAAABRMXmr1IxVcy+qw==", bytes({0x40,0xE6,0x28,0x01,0x26,0x00,0x00,0x00,0x01,0x44,0xC5,0xE6,0xAF,0x52,0x31,0x55,0xCC,0xBE,0xAB})},
         {"QOYoASYAAQADmUq+6E3NTDa6Yg==", bytes({0x40,0xE6,0x28,0x01,0x26,0x00,0x01,0x00,0x03,0x99,0x4A,0xBE,0xE8,0x4D,0xCD,0x4C,0x36,0xBA,0x62})}
-                                                };
+    };
     for(auto& value: loraBase64)
     {
         writeLog(Logger::Common,"-------------------");

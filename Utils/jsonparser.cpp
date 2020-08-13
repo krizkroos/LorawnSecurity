@@ -1,12 +1,7 @@
 #include "jsonparser.h"
 #include "logger.h"
 
-
 using namespace rapidjson;
-JsonParser::JsonParser()
-{
-
-}
 
 std::string JsonParser::getJson()
 {
@@ -60,8 +55,8 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 
         if(!map.HasMember(currentKey.c_str()))
         {
-             writeLog(Logger::JSON,"no member with root key: " + currentKey);
-             return Lorawan_result::NoValueAvailable;
+            writeLog(Logger::JSON,"no member with root key: " + currentKey);
+            return Lorawan_result::NoValueAvailable;
         }
 
         if(key.size() == 1)
@@ -69,12 +64,12 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
 
             if(!map[currentKey.c_str()].IsString())
             {
-               writeLog(Logger::JSON,"not a string but provided only one key");
-               return Lorawan_result::NoValueAvailable;
+                writeLog(Logger::JSON,"not a string but provided only one key");
+                return Lorawan_result::NoValueAvailable;
             }
 
             map[currentKey.c_str()].SetString(value.c_str(),allocator);
-           return Lorawan_result::Success;
+            return Lorawan_result::Success;
 
         }
         else if(key.size() == 2)
@@ -133,7 +128,7 @@ Lorawan_result JsonParser::changeValue(jsonKeys key, const std::string value)
         return Lorawan_result::NoValueAvailable;
     }
 
-  return Lorawan_result::Error;
+    return Lorawan_result::Error;
 
 }
 
@@ -162,14 +157,14 @@ Lorawan_result JsonParser::changeValueInArray(std::string root, std::string key,
 
             if(it->name.GetString() == key)
             {
-                    if(!it->value.IsString())
-                    {
-                        writeLog(Logger::JSON,"not a string but provided only one key");
-                        return Lorawan_result::NoValueAvailable;
-                    }
+                if(!it->value.IsString())
+                {
+                    writeLog(Logger::JSON,"not a string but provided only one key");
+                    return Lorawan_result::NoValueAvailable;
+                }
 
-                    it->value.SetString(value.c_str(),allocator);
-                    return Lorawan_result::Success;
+                it->value.SetString(value.c_str(),allocator);
+                return Lorawan_result::Success;
 
             }
         }
@@ -208,12 +203,12 @@ Lorawan_result JsonParser::getValue(jsonKeys key, std::string &value)
 
             if(!map[currentKey.c_str()].IsString())
             {
-               writeLog(Logger::JSON,"not a string value but provided only one key");
-               return Lorawan_result::NoValueAvailable;
+                writeLog(Logger::JSON,"not a string value but provided only one key");
+                return Lorawan_result::NoValueAvailable;
             }
 
-           value = std::string(map[currentKey.c_str()].GetString());
-           return Lorawan_result::Success;
+            value = std::string(map[currentKey.c_str()].GetString());
+            return Lorawan_result::Success;
 
         }
         else if(key.size() == 2)
@@ -272,7 +267,7 @@ Lorawan_result JsonParser::getValue(jsonKeys key, std::string &value)
         return Lorawan_result::NoValueAvailable;
     }
 
-  return Lorawan_result::Error;
+    return Lorawan_result::Error;
 }
 
 Lorawan_result JsonParser::getValueFromArrayWithKey(std::string root, std::string key, std::string &value)
@@ -297,7 +292,7 @@ Lorawan_result JsonParser::getValueFromArrayWithKey(std::string root, std::strin
 
             if(it->name.GetString() == key)
             {
-                 writeLog(Logger::JSON,"found value for name: " + std::string(it->name.GetString()));
+                writeLog(Logger::JSON,"found value for name: " + std::string(it->name.GetString()));
                 value = std::string(it->value.GetString());
                 foundValue = true;
                 break;

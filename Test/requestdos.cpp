@@ -5,14 +5,22 @@
 #include <chrono>
 #include <thread>
 
-RequestDoS::RequestDoS()
-{
-
-}
-
 RequestDoS::RequestDoS(int requestCounter)
 {
     _requestCounter = requestCounter;
+}
+
+Lorawan_result RequestDoS::setUpSending(std::shared_ptr<JoinRequestPacket> requestPkt)
+{
+    called(Logger::RequestDoS);
+    testDevice->setAppEUI(requestPkt->getAppEUI());
+    testDevice->setDevEUI(requestPkt->getDevEUI());
+    testDevice->setEui64(requestPkt->getEui64());
+
+    uplink.setDstPort(requestPkt->getDstPort());
+    uplink.setSrcPort(requestPkt->getSrcPort());
+
+    return Lorawan_result::Success;
 }
 
 Lorawan_result RequestDoS::launch()
@@ -21,7 +29,7 @@ Lorawan_result RequestDoS::launch()
     PacketStorage *storage = PacketStorage::getInstance();
 
     std::vector<std::shared_ptr<JoinRequestPacket> > requests = storage->getRequestPacket();
-     writeLog(Logger::RequestDoS | Logger::LorawanTest, "Starting RequestDoS");
+    writeLog(Logger::RequestDoS | Logger::LorawanTest, "Starting RequestDoS");
     if(requests.size() > 0)
     {
         std::shared_ptr<JoinRequestPacket> req = requests.front();
@@ -76,9 +84,9 @@ Lorawan_result RequestDoS::sendNextJoinRequest(std::shared_ptr<JoinRequestPacket
     writeLog(Logger::BruteforcingMIC,"packet is based on IP with id = " + std::to_string(refIP.id()));
 
     if(send(copyRequest.getMagicFour(),testDevice->getEui64(), jsonToSend) != Lorawan_result::Success)
-        {
-            writeLog(Logger::BatteryDepletion,"error sending extra downlink packet!");
-        }
+    {
+        writeLog(Logger::BatteryDepletion,"error sending extra downlink packet!");
+    }
 
     return Lorawan_result::Success;
 }
@@ -98,18 +106,4 @@ Lorawan_result RequestDoS::send(bytes magicFour, bytes eui64, std::string json)
 
     writeLog(Logger::RequestDoS, "data to send: \n" + dataToSend);
     return uplink.send(dataToSend);
-}
-
-
-Lorawan_result RequestDoS::setUpSending(std::shared_ptr<JoinRequestPacket> requestPkt)
-{
-    called(Logger::RequestDoS);
-    testDevice->setAppEUI(requestPkt->getAppEUI());
-    testDevice->setDevEUI(requestPkt->getDevEUI());
-    testDevice->setEui64(requestPkt->getEui64());
-
-    uplink.setDstPort(requestPkt->getDstPort());
-    uplink.setSrcPort(requestPkt->getSrcPort());
-
-    return Lorawan_result::Success;
 }

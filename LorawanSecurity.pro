@@ -22,7 +22,6 @@ SOURCES += \
     Packet/lorawanpacket.cpp \
     Device/lorawandevice.cpp \
     Device/lorawandevice1_0_2.cpp \
-    Packet/packetcontroller.cpp \
     Packet/sendcontroller.cpp \
     Test/batterydepletion.cpp \
     Test/bruteforcing_mic.cpp \
@@ -39,7 +38,6 @@ SOURCES += \
 
 HEADERS += \
     Examples/tester.h \
-    Packet/packetcontroller.h \
     Packet/sendcontroller.h \
     Test/batterydepletion.h \
     Test/bruteforcing_mic.h \
