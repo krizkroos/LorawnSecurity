@@ -1,0 +1,9 @@
+BUILD_ON_RPI_DIR = /home/ttn/THESIS
+RPI_FS = /home/kriss/DevUtils/raspberry-fs
+APP_DIR = /home/kriss/PROJECTS/ThesisProject/build/Adversary
+BUILD_DIR = /home/kriss/PROJECTS/ThesisProject/build/Lorawan-Security
+LIB_SDK = /home/kriss/PROJECTS/SDK
+LIB_EXT = a
+TINS_DIR = src/CMakeFiles/tins.dir
+CRYPTO_OBJ_DIR = /usr/local/ssl/lib/libcrypto-obj
+SSL_OBJ_DIR = /usr/local/ssl/lib/libssl-obj
