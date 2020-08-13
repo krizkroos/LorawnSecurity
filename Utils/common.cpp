@@ -394,7 +394,9 @@ Lorawan_result Common::calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac)
 
 Lorawan_result Common::encrypt_aes128(bytes key, bytes message, bytes encMsg)
 {
-
+    UNUSED(key);
+    UNUSED(message);
+    UNUSED(encMsg);
     //    EVP_CIPHER_CTX *ctx;
 
     //        int len;
@@ -445,7 +447,7 @@ Lorawan_result Common::encrypt_aes128(bytes key, bytes message, bytes encMsg)
 
     //        return ciphertext_len;
 
-    //    return Lorawan_result::Success;
+     return Lorawan_result::NoValueAvailable;
 }
 
 Lorawan_result Common::convertToLittleEndian(bytes bigEndianValue, bytes &littleEndianValue)
@@ -483,30 +485,6 @@ Lorawan_result Common::convertToBigEndian(bytes littleEndianValue, bytes &bigEnd
     }
 
     return Lorawan_result::Success;
-}
-
-Lorawan_result Common::convertIPAddress(const bytes address, bytes &convertedAddr)
-{
-
-    //UNFINISHED
-    called(Logger::Common);
-    std::pair<byte,byte> value;
-    size_t refSize =address.size();
-    if(address.empty())
-        return Lorawan_result::InputSizeZero;
-
-    if(refSize % 2 !=0)
-    {
-        return Lorawan_result::Error;
-    }
-    convertedAddr.clear();
-
-    for(size_t index=0; index< refSize; index+=2)
-    {
-        value = std::make_pair(address.at(index), address.at(index +2));
-        int newPos = static_cast<int>(refSize - index -1);
-
-    }
 }
 
 Lorawan_result Common::testDecodingEncoding()

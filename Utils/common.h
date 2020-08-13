@@ -19,7 +19,6 @@ public:
 
     static Lorawan_result testDecodingEncoding();
     static Lorawan_result testBigAndLittleEndian();
-    static Lorawan_result convertIPAddress(const bytes address, bytes &convertedAddr);
 
     static bytes ulong2Bytes(unsigned long int value);
     static Lorawan_result calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac);
