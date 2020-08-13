@@ -1,7 +1,6 @@
 #ifndef LORAWANSECURITY_H
 #define LORAWANSECURITY_H
 
-#include "LorawanSecurity_global.h"
 #include "defineLorawan.h"
 #include "Test/lorawantest.h"
 #include "Test/testparams.h"

@@ -49,7 +49,6 @@ HEADERS += \
     Utils/jsonparser.h \
     Utils/logger.h \
     defineLorawan.h \
-    LorawanSecurity_global.h \
     Packet/datapacket.h \
     Packet/lorawanpacket.h \
     Packet/joinacceptpacket.h \
