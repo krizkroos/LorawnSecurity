@@ -71,6 +71,15 @@ Lorawan_result LorawanTester::testMIC(TestParams params)
         Common::setNwkSKey(key);
     }
 
+    std::string micValuesFile = params.getMicValuesFileName();
+
+    if(!micValuesFile.empty())
+    {
+        Common::setMicBruteforcing(true);
+        Common::setMicValuesFileName(micValuesFile);
+    }
+
+
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
     std::map<SniffingPackets, int> wantedPacket;
@@ -157,14 +166,6 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
         return Lorawan_result::ErrorPrerequisite;
     }
 
-    //printPackets();
-
-    //    if(loraSec.launchTest()  != Lorawan_result::Success)
-    //    {
-    //        writeLog(Logger::LorawanTest,"Error launching test");
-    //        return Lorawan_result::ErrorTest;
-    //    }
-
     wantedPacket.clear();
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
     std::shared_ptr<MiTMAttack> mitmLoopUplink = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
@@ -226,6 +227,21 @@ Lorawan_result LorawanTester::testDoSRequest(TestParams params)
         return Lorawan_result::ErrorTestSetUp;
     }
 
+    int _requestCounter = 0;
+    int paramsCounter = params.getRequestCounter();
+
+    if(paramsCounter > 0)
+    {
+        _requestCounter = paramsCounter;
+        writeLog(Logger::LorawanTest,"downlink counter set up from params = " + std::to_string(_requestCounter));
+    }
+    else
+    {
+        _requestCounter = 3;
+        writeLog(Logger::LorawanTest,"downlink counter set to default = " + std::to_string(_requestCounter));
+
+    }
+
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
     std::map<SniffingPackets, int> wantedPacket;
@@ -234,7 +250,14 @@ Lorawan_result LorawanTester::testDoSRequest(TestParams params)
 
     std::shared_ptr<MiTMAttack> mitm = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
     mitm->setName("MiTM");
-    std::shared_ptr<RequestDoS> testOne = std::make_shared<RequestDoS>();
+    std::shared_ptr<RequestDoS> testOne = std::make_shared<RequestDoS>(_requestCounter);
+
+    bytes appKey = params.getAppKey();
+
+    if(!appKey.empty())
+    {
+        testOne->setAppKey(appKey);
+    }
 
     testOne->setDescription("DoS with JoinRequest packets");
     testOne->setTestDevice(testDevice);
@@ -264,6 +287,7 @@ Lorawan_result LorawanTester::testDoSRequest(TestParams params)
         writeLog(Logger::LorawanTest,"Error launching test");
         return Lorawan_result::ErrorTest;
     }
+
 
     return Lorawan_result::Success;
 }

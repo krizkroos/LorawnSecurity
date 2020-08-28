@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+
 JoinRequestPacket::JoinRequestPacket() : LorawanPacket(MsgType::JoinRequest)
 {
 
@@ -63,6 +64,7 @@ Lorawan_result JoinRequestPacket::deserialize()
 
 
 }
+
 
 Lorawan_result JoinRequestPacket::serialize()
 {
@@ -135,4 +137,6 @@ bytes JoinRequestPacket::getDevNonce() const
 void JoinRequestPacket::setDevNonce(const bytes &value)
 {
     devNonce = value;
+    writeLog(Logger::Packet, "set up value of DevNonce");
+    writeHexLog(Logger::Packet, devNonce);
 }

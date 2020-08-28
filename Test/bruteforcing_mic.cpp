@@ -9,16 +9,6 @@
 
 BruteforcingMIC::BruteforcingMIC()
 {
-    //     auto startFactoring = std::chrono::high_resolution_clock::now();
-
-    //    for(unsigned long int i=1; i < 4294967295; i++)
-    //    {
-    //        micValues.emplace_back(Common::ulong2Bytes(i));
-    //    }
-
-    //    auto stop = std::chrono::high_resolution_clock::now();
-    //    auto duration = std::chrono::duration_cast<std::chrono::duration<int64_t, std::milli>>( stop - startFactoring ).count();
-    //    std::cout << "all MIC were generated in : " << duration  << " ms" << std::endl;
 
 }
 
@@ -76,8 +66,7 @@ Lorawan_result BruteforcingMIC::sendGuardPacket( std::shared_ptr<DataPacket> dat
     if(copyPacket.serialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;
 
-
-    if(Common::calculateMIC(copyPacket) != Lorawan_result::Success)
+    if(Common::calculateMIC(copyPacket, 0x00) != Lorawan_result::Success)
     {
         return Lorawan_result::ErrorCalcMIC;
     }
@@ -114,7 +103,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
 
     //    unsigned long int dosCount = Common::bytes2ULong(copyPacket.getFrameCounter());
 
-    //    dosCount += 1;
+    //    dosCount += 16384;
 
     //    copyPacket.setFrameCounter(Common::ulong2Bytes(dosCount));
     //    std::cout << "changed value of FCnt: " << Common::bytes2HexStr(copyPacket.getFrameCounter()) << std::endl;
@@ -122,7 +111,7 @@ Lorawan_result BruteforcingMIC::sendDeathPacket(std::shared_ptr<DataPacket> data
     if(copyPacket.serialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;
 
-    if(Common::calculateMIC(copyPacket, true) != Lorawan_result::Success)
+    if(Common::calculateMIC(copyPacket,0x00,true) != Lorawan_result::Success)
     {
         return Lorawan_result::ErrorCalcMIC;
     }

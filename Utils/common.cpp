@@ -4,6 +4,7 @@
 
 
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <memory>
 #include <stdio.h>
@@ -17,7 +18,12 @@
 #include <openssl/err.h>
 
 unsigned long int Common::MAX_FCNT_GAP = 1;
+unsigned long int Common::currentLine = 0;
+bool Common::micBruteforcing = false;
+std::string Common::micValuesFileName = "";
+
 bytes Common::nwkSKey = {0xC5,0xCD,0x1F,0x3F,0x85,0x40,0xF0,0xC8,0xA0,0x0F,0x3F,0x5E,0x62,0x44,0x32,0xA0};
+
 
 std::string Common::bytes2Str(bytes input)
 {
@@ -42,6 +48,48 @@ std::string Common::getTime()
 
     return std::string(time_string);
 }
+
+bytes Common::getNextMICValue()
+{
+    unsigned long int _localLineNo =0;
+    std::fstream infile(micValuesFileName);
+    called(Logger::Common);
+    writeLog(Logger::Common, "value of currentLine = " + std::to_string(currentLine));
+    writeLog(Logger::Common, "value of _localLine = " + std::to_string(_localLineNo));
+    unsigned long int nextValue =0;
+
+    while(infile >> nextValue)
+    {
+        if(_localLineNo == currentLine)
+        {
+            currentLine++;
+            break;
+        }
+        else
+        {
+            _localLineNo++;
+            continue;
+        }
+    }
+    bytes micValue =Common::ulong2Bytes(nextValue);
+    writeLog(Logger::Common, "Next value of MIC:");
+    writeHexLog(Logger::Common, micValue);
+
+    return micValue;
+}
+
+
+
+void Common::setMicValuesFileName(const std::string &value)
+{
+    micValuesFileName = value;
+}
+
+void Common::setMicBruteforcing(bool value)
+{
+    micBruteforcing = value;
+}
+
 
 std::string Common::bytes2HexStr(bytes input, bool withSpace, bool withBreaks)
 {
@@ -132,6 +180,7 @@ bytes Common::ulong2Bytes(unsigned long int value)
     return v;
 }
 
+//function calcDecodeLength is from source:
 //https://gist.github.com/barrysteyn/7308212
 size_t Common::calcDecodeLength(const char* b64input)
 { //Calculates the length of a decoded string
@@ -152,11 +201,11 @@ void Common::setNwkSKey(const bytes &value)
 
 void Common::setMAX_FCNT_GAP(unsigned long value)
 {
-    MAX_FCNT_GAP = value;
+    Common::MAX_FCNT_GAP = value;
     writeLog(Logger::Common,"MAX_FCNT_GAP = " + std::to_string(MAX_FCNT_GAP));
 }
 
-Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
+Lorawan_result Common::calculateMIC(DataPacket& dataPkt, byte direction, bool changeFCnt)
 {
     called(Logger::Common);
     writeLog(Logger::Common,"Calculating new MIC value");
@@ -167,6 +216,16 @@ Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
     bytes _msg{};
 
     bytes calcCMAC{};
+
+    if(Common::micBruteforcing)
+    {
+       bytes mic = Common::getNextMICValue();
+       writeLog(Logger::Common,"Setting up MIC value from file");
+       dataPkt.setMIC(mic);
+
+       return Lorawan_result::Success;
+    }
+
     bytes frameCounter = dataPkt.getFrameCounter();
 
     initBlock.emplace_back(0x49);
@@ -174,7 +233,12 @@ Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
     for(int i=0; i < 4; i++)
         initBlock.emplace_back(0x00);
 
-    initBlock.emplace_back(0x00); // DIR
+    if(direction != 0x00 && direction != 0x01)
+    {
+        return Lorawan_result::ErrorCalcMIC;
+    }
+
+    initBlock.emplace_back(direction);
 
 
     bytes littleEndianDevAddr{};
@@ -251,6 +315,8 @@ Lorawan_result Common::calculateMIC(DataPacket& dataPkt, bool changeFCnt)
     }
 
     dataPkt.setMIC(bytes(calcCMAC.begin(), calcCMAC.begin() + 4));
+
+    writeHexLog(Logger::Common, dataPkt.getMIC());
 
     writeLog(Logger::Common,"Finished calculating MIC");
     return Lorawan_result::Success;

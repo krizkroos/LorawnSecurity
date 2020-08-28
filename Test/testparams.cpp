@@ -1,6 +1,26 @@
 #include "testparams.h"
 #include "Utils/logger.h"
 
+std::string TestParams::getMicValuesFileName() const
+{
+    return micValuesFileName;
+}
+
+void TestParams::setMicValuesFileName(const std::string &value)
+{
+    micValuesFileName = value;
+}
+
+bytes TestParams::getAppKey() const
+{
+    return appKey;
+}
+
+void TestParams::setAppKey(const bytes &value)
+{
+    appKey = value;
+}
+
 std::string TestParams::getLogFileName() const
 {
     return logFileName;

@@ -23,16 +23,24 @@ public:
     static bytes ulong2Bytes(unsigned long int value);
     static Lorawan_result calculate_cmac(bytes keyVal, bytes msgVal, bytes &cmac);
     static Lorawan_result encrypt_aes128(bytes key, bytes message, bytes encMsg);
-    static Lorawan_result calculateMIC(DataPacket &dataPkt, bool changeFCnt = false);
+    static Lorawan_result calculateMIC(DataPacket &dataPkt, byte direction, bool changeFCnt = false);
     static Lorawan_result createJsonToSend(bytes rawPacket, std::string refJson, std::string &jsonToSend, std::string msgType = "rxpk");
     static std::string getTime();
     static void setMAX_FCNT_GAP(unsigned long value);
     static void setNwkSKey(const bytes &value);
+    static void setMicBruteforcing(bool value);
+    static void setMicValuesFileName(const std::string &value);
 
 private:
     static size_t calcDecodeLength(const char *b64input);
+    static bytes getNextMICValue();
+
     static unsigned long int MAX_FCNT_GAP;
+    static unsigned long int currentLine;
+    static std::string micValuesFileName;
+    static bool micBruteforcing;
     static bytes nwkSKey;
+
 };
 
 #endif // COMMON_H

@@ -8,6 +8,7 @@ class TestParams
 {
 private:
     std::string logFileName;
+    std::string micValuesFileName;
     std::string interfaceName;
     std::string filter;
     int downlinkCounter = 0;
@@ -16,6 +17,7 @@ private:
     unsigned long long int _logLevel = 0;
 
     bytes nwkSKey;
+    bytes appKey;
 public:
     std::string getLogFileName() const;
     void setLogFileName(const std::string &value);
@@ -33,6 +35,10 @@ public:
     void setMax_gap(unsigned long value);
     bytes getNwkSKey() const;
     void setNwkSKey(const bytes &value);
+    std::string getMicValuesFileName() const;
+    void setMicValuesFileName(const std::string &value);
+    bytes getAppKey() const;
+    void setAppKey(const bytes &value);
 };
 
 #endif // TESTPARAMS_H

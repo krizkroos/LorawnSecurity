@@ -77,7 +77,7 @@ Lorawan_result BatteryDepletion::sendExtraDownlinkPacket(std::shared_ptr<DataPac
         return Lorawan_result::ErrorSerialize;
 
 
-    if(Common::calculateMIC(copyPacket) != Lorawan_result::Success)
+    if(Common::calculateMIC(copyPacket, 0x01) != Lorawan_result::Success) // DIR is 0 for uplink frames and 1 for downlink frames
     {
         return Lorawan_result::ErrorCalcMIC;
     }

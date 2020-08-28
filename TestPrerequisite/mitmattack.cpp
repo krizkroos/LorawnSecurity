@@ -90,7 +90,7 @@ bool MiTMAttack::deserializePacket(const Tins::Packet& packet)
                 //TODO why to omit first three bytes and why 0x00 indicates wanted rx packet
             {
                 writeLog(Logger::MiTM, "UPLINK lorawan packet");
-                rawJson = bytes(serializedData.begin() +12, serializedData.end()); // omit EUI
+                rawJson = bytes(serializedData.begin() +12, serializedData.end()); // omit magic four + EUI
                 jsonString = Common::bytes2Str(rawJson);
                 jParser.parse(jsonString);
                 writeLog(Logger::Packet,"UPLINK packet with IP.id = " + std::to_string(ip.id()));
