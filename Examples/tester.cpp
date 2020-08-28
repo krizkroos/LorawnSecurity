@@ -134,16 +134,28 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
         return Lorawan_result::ErrorTestSetUp;
     }
 
+    int downlinkCounter = 0;
+    int paramsCounter = params.getDownlinkCounter();
+    if( paramsCounter > 0)
+    {
+        downlinkCounter = paramsCounter;
+        writeLog(Logger::LorawanTest,"downlink counter set up from params = " + std::to_string(downlinkCounter));
+    }
+    else
+    {
+        downlinkCounter = 3;
+        writeLog(Logger::LorawanTest,"downlink counter set to default = " + std::to_string(downlinkCounter));
+    }
+
     std::shared_ptr<LorawanDevice1_0_2> testDevice = std::make_shared<LorawanDevice1_0_2>();
 
     std::map<SniffingPackets, int> wantedPacket;
 
     wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Downlink, 1));
-    //wantedPacket.insert(std::pair<SniffingPackets, int>( SniffingPackets::Uplink, 1));
 
     std::shared_ptr<MiTMAttack> mitmCollectDownlink = std::make_shared<MiTMAttack>(wantedPacket,params.getFilter(),params.getInterfaceName());
     mitmCollectDownlink->setName("MiTM");
-    std::shared_ptr<BatteryDepletion> testOne = std::make_shared<BatteryDepletion>();
+    std::shared_ptr<BatteryDepletion> testOne = std::make_shared<BatteryDepletion>(downlinkCounter);
 
     testOne->setDescription("Battery deplation test");
     testOne->setTestDevice(testDevice);
@@ -178,37 +190,14 @@ Lorawan_result LorawanTester::testBatteryDeplation(TestParams params)
         return Lorawan_result::ErrorPrerequisite;
     }
 
-    int downlinkCounter = 0;
-    int paramsCounter = params.getDownlinkCounter();
-    if( paramsCounter > 0)
+    //printPackets();
+
+    if(loraSec.launchTest()  != Lorawan_result::Success)
     {
-        downlinkCounter = paramsCounter;
-        writeLog(Logger::LorawanTest,"downlink counter set up from params = " + std::to_string(downlinkCounter));
-    }
-    else
-    {
-        downlinkCounter = 3;
-        writeLog(Logger::LorawanTest,"downlink counter set to default = " + std::to_string(downlinkCounter));
+        writeLog(Logger::LorawanTest,"Error launching next test");
+        return Lorawan_result::ErrorTest;
     }
 
-    for(int i=0; i < downlinkCounter; i++)
-    {
-        writeLog(Logger::LorawanTest, "loop no "+ std::to_string(i));
-        if(loraSec.startPrerequisites()  != Lorawan_result::Success)
-        {
-            writeLog(Logger::LorawanTest,"Error starting next prerequisite");
-            return Lorawan_result::ErrorPrerequisite;
-        }
-
-        printPackets();
-
-        if(loraSec.launchTest()  != Lorawan_result::Success)
-        {
-            writeLog(Logger::LorawanTest,"Error launching next test");
-            return Lorawan_result::ErrorTest;
-        }
-
-    }
 
 
     return Lorawan_result::Success;

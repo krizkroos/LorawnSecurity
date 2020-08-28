@@ -89,6 +89,7 @@ Lorawan_result PacketStorage::findFirstDownlink(std::shared_ptr<DataPacket> &pac
     {
         if(pkt->getDirection() == "downlink")
         {
+            writeLog(Logger::PacketData, "Found downlink packet");
             if(withDevAddr.size() > 0)
             {
                 if(pkt->isDevAddrSame(withDevAddr))
@@ -106,12 +107,13 @@ Lorawan_result PacketStorage::findFirstDownlink(std::shared_ptr<DataPacket> &pac
             else
             {
                 packet = pkt;
-                writeLog(Logger::PacketData, "found packet with correct devAddr");
+                writeLog(Logger::PacketData, "no devAddr needed - value assigned ");
                 return Lorawan_result::Success;
             }
 
         }
     }
+    writeLog(Logger::PacketData, "No value available");
     return Lorawan_result::NoValueAvailable;
 }
 
@@ -121,8 +123,10 @@ Lorawan_result PacketStorage::findLastUplink(std::shared_ptr<DataPacket> &packet
     std::vector<std::shared_ptr<DataPacket>>::reverse_iterator lastPkt = macPayload.rbegin();
     for(; lastPkt != macPayload.rend(); ++lastPkt)
     {
+        writeLog(Logger::PacketData, "Looking for uplink packet");
         if((*lastPkt)->getDirection() == "uplink")
         {
+            writeLog(Logger::PacketData, "Found uplink packet");
             if(withDevAddr.size() > 0)
             {
                 if((*lastPkt)->isDevAddrSame(withDevAddr))
@@ -138,28 +142,34 @@ Lorawan_result PacketStorage::findLastUplink(std::shared_ptr<DataPacket> &packet
             }
             else
             {
+                writeLog(Logger::PacketData, "No devAddr checked");
                 packet = (*lastPkt);
+                 writeLog(Logger::PacketData, "Assigned value");
                 return Lorawan_result::Success;
             }
 
         }
     }
+    writeLog(Logger::PacketData, "No value available value");
     return Lorawan_result::NoValueAvailable;
 
 }
 
 std::vector<std::shared_ptr<JoinAcceptPacket> > PacketStorage::getAcceptPacket() const
 {
+    writeLog(Logger::PacketData, "Getting accept packets");
     return accept;
 }
 
 std::vector<std::shared_ptr<DataPacket> > PacketStorage::getMacPayloadPacket() const
 {
+    writeLog(Logger::PacketData, "Getting payload packets");
     return macPayload;
 }
 
 std::vector<std::shared_ptr<JoinRequestPacket> > PacketStorage::getRequestPacket() const
 {
+    writeLog(Logger::PacketData, "Getting request packets");
     return request;
 }
 

