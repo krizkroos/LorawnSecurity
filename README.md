@@ -22,5 +22,5 @@ Below there is a list of used external software:
 
 Library provides two interfaces: Test prerequisite and actual testing
 
-It can be widden with new attack vectors. Two add new attacks you have to provide all necessary actions in TestPrerequisite interface before the test. During the test you can use SendController class to send packets in specified port of Network LoRaWAN server you are testing.
+It can be widden with new attack vectors. To add new attacks you have to provide all necessary actions in TestPrerequisite interface before the test. You can of course use sniffing packets from MiTMAttack prerequisite. During the test you can use SendController class to send packets in specified port of Network LoRaWAN server you are testing.
 
