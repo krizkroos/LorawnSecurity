@@ -26,11 +26,10 @@ protected:
     uint16_t dstPort;
     uint16_t srcPort;
 public:
-    LorawanPacket();
+    LorawanPacket() = default;
     LorawanPacket(MsgType type);
     LorawanPacket(const std::shared_ptr<LorawanPacket> packet);
 
-    bytes serializePacket();
     bytes getRawData() const;
     void setRawData(const bytes &value);
     MsgType getType() const;

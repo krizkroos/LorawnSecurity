@@ -4,6 +4,24 @@
 #include "Utils/logger.h"
 
 
+DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
+{
+
+}
+
+DataPacket::DataPacket(const std::shared_ptr<DataPacket> packet) : LorawanPacket(packet)
+{
+    called(Logger::Packet);
+
+    devAddr = packet->devAddr;
+    fCtrl = packet->fCtrl;
+    frameCounter = packet->frameCounter;
+    fOpts = packet->fOpts;
+    fPort = packet->fPort;
+    frmPayload = packet->frmPayload;
+
+}
+
 bytes DataPacket::getFrameCounter() const
 {
     return frameCounter;
@@ -32,24 +50,6 @@ void DataPacket::setDirection(const std::string &value)
 bool DataPacket::isDevAddrSame(bytes refDevAddr)
 {
     return (devAddr == refDevAddr);
-}
-
-DataPacket::DataPacket() : LorawanPacket(MsgType::MACPayload)
-{
-
-}
-
-DataPacket::DataPacket(const std::shared_ptr<DataPacket> packet) : LorawanPacket(packet)
-{
-    called(Logger::Packet);
-
-    devAddr = packet->devAddr;
-    fCtrl = packet->fCtrl;
-    frameCounter = packet->frameCounter;
-    fOpts = packet->fOpts;
-    fPort = packet->fPort;
-    frmPayload = packet->frmPayload;
-
 }
 
 Lorawan_result DataPacket::deserialize()

@@ -17,10 +17,8 @@ public:
     Lorawan_result send(std::string rawData);
 
     void setIP(const Tins::IP &value);
-    void setMagicFour(const bytes &value);
     void setDstPort(const uint16_t &value);
     void setSrcPort(const uint16_t &value);
-    void setEui64(const bytes &value);
 };
 
 #endif // UPLINKCONTROLLER_H

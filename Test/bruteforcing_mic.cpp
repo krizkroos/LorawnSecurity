@@ -7,11 +7,6 @@
 #include <chrono>
 #include <thread>
 
-BruteforcingMIC::BruteforcingMIC()
-{
-
-}
-
 Lorawan_result BruteforcingMIC::launch()
 {
     called(Logger::BruteforcingMIC);

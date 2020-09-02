@@ -19,6 +19,38 @@ JoinRequestPacket::JoinRequestPacket(const std::shared_ptr<JoinRequestPacket> pa
     devNonce = packet->getDevNonce();
 }
 
+bytes JoinRequestPacket::getAppEUI() const
+{
+    return appEUI;
+}
+
+void JoinRequestPacket::setAppEUI(const bytes &value)
+{
+    appEUI = value;
+}
+
+bytes JoinRequestPacket::getDevEUI() const
+{
+    return devEUI;
+}
+
+void JoinRequestPacket::setDevEUI(const bytes &value)
+{
+    devEUI = value;
+}
+
+bytes JoinRequestPacket::getDevNonce() const
+{
+    return devNonce;
+}
+
+void JoinRequestPacket::setDevNonce(const bytes &value)
+{
+    devNonce = value;
+    writeLog(Logger::Packet, "set up value of DevNonce");
+    writeHexLog(Logger::Packet, devNonce);
+}
+
 Lorawan_result JoinRequestPacket::deserialize()
 {
 
@@ -108,35 +140,3 @@ Lorawan_result JoinRequestPacket::serialize()
     return Lorawan_result::Success;
 }
 
-
-bytes JoinRequestPacket::getAppEUI() const
-{
-    return appEUI;
-}
-
-void JoinRequestPacket::setAppEUI(const bytes &value)
-{
-    appEUI = value;
-}
-
-bytes JoinRequestPacket::getDevEUI() const
-{
-    return devEUI;
-}
-
-void JoinRequestPacket::setDevEUI(const bytes &value)
-{
-    devEUI = value;
-}
-
-bytes JoinRequestPacket::getDevNonce() const
-{
-    return devNonce;
-}
-
-void JoinRequestPacket::setDevNonce(const bytes &value)
-{
-    devNonce = value;
-    writeLog(Logger::Packet, "set up value of DevNonce");
-    writeHexLog(Logger::Packet, devNonce);
-}

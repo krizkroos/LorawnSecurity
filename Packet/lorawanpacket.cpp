@@ -1,6 +1,21 @@
 #include "lorawanpacket.h"
 #include "Utils/logger.h"
 
+LorawanPacket::LorawanPacket(MsgType type)
+{
+    _type = type;
+}
+
+LorawanPacket::LorawanPacket(const std::shared_ptr<LorawanPacket> packet)
+{
+    _type = packet->_type;
+    rawPacket= packet->rawPacket;
+    jsonString= packet->jsonString;
+    MIC= packet->MIC;
+    magicFour= packet->magicFour;
+
+}
+
 MsgType LorawanPacket::getType() const
 {
     return _type;
@@ -71,14 +86,14 @@ void LorawanPacket::setDstPort(const uint16_t &value)
     dstPort = value;
 }
 
-LorawanPacket::LorawanPacket()
+bytes LorawanPacket::getRawData() const
 {
-    
+    return rawPacket;
 }
 
-LorawanPacket::LorawanPacket(MsgType type)
+void LorawanPacket::setRawData(const bytes &value)
 {
-    _type = type;
+    rawPacket = value;
 }
 
 Lorawan_result LorawanPacket::setIP(std::string dstAddr, Tins::IP::Flags flags, uint16_t id, uint8_t tos, uint8_t ttl, bool convertToBigEndian)
@@ -101,31 +116,4 @@ Lorawan_result LorawanPacket::setIP(std::string dstAddr, Tins::IP::Flags flags, 
 
 
     return Lorawan_result::Success;
-}
-
-LorawanPacket::LorawanPacket(const std::shared_ptr<LorawanPacket> packet)
-{
-    _type = packet->_type;
-    rawPacket= packet->rawPacket;
-    jsonString= packet->jsonString;
-    MIC= packet->MIC;
-    magicFour= packet->magicFour;
-
-}
-
-bytes LorawanPacket::getRawData() const
-{
-    return rawPacket;
-}
-
-void LorawanPacket::setRawData(const bytes &value)
-{
-    rawPacket = value;
-}
-
-
-
-bytes LorawanPacket::serializePacket()
-{
-    return bytes();
 }

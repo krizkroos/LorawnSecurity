@@ -172,14 +172,6 @@ Lorawan_result JsonParser::changeValueInArray(std::string root, std::string key,
     return Lorawan_result::Error;
 }
 
-Lorawan_result JsonParser::changeValue(jsonKeys key, int value)
-{
-    called(Logger::JSON);
-    UNUSED(key);
-    UNUSED(value);
-    return Lorawan_result::NotSupportedFeature;
-}
-
 Lorawan_result JsonParser::getValue(jsonKeys key, std::string &value)
 {
     called(Logger::JSON);
@@ -305,7 +297,6 @@ Lorawan_result JsonParser::getValueFromArrayWithKey(std::string root, std::strin
         return Lorawan_result::NoValueAvailable;
 }
 
-
 Lorawan_result JsonParser::getValue(jsonKeys key, int &value)
 {
     called(Logger::JSON);
@@ -323,9 +314,3 @@ Lorawan_result JsonParser::getValue(jsonKeys key, int &value)
 
 }
 
-Lorawan_result getValueFromArrayType(std::string key, int &value)
-{
-    UNUSED(key);
-    UNUSED(value);
-    return Lorawan_result::NotSupportedFeature;
-}

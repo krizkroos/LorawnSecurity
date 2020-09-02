@@ -23,7 +23,6 @@ public:
     Lorawan_result getValueFromArrayWithKey(std::string root, std::string key, std::string &value);
     Lorawan_result getValueFromArrayWithKey(std::string key, int &value);
 
-    Lorawan_result changeValue(jsonKeys key, const int value);
     Lorawan_result changeValue(jsonKeys key, const std::string value);
     Lorawan_result changeValueInArray(std::string root, std::string key, const std::string value);
 };

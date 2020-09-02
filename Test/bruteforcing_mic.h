@@ -9,7 +9,7 @@
 class BruteforcingMIC : public LorawanTest
 {
 public:
-    BruteforcingMIC();
+    BruteforcingMIC() = default;
     std::vector<std::vector<unsigned char>> micValues;
     virtual Lorawan_result launch() override;
 

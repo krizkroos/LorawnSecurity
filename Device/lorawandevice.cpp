@@ -1,18 +1,13 @@
 #include "lorawandevice.h"
 
-bytes LorawanDevice::getDevEUI() const
+LorawanDevice::LorawanDevice(lorawanVersion ver)
 {
-    return devEUI;
+    version = ver;
 }
 
 void LorawanDevice::setDevEUI(const bytes &value)
 {
     devEUI = value;
-}
-
-bytes LorawanDevice::getAppEUI() const
-{
-    return appEUI;
 }
 
 void LorawanDevice::setAppEUI(const bytes &value)
@@ -42,9 +37,4 @@ Lorawan_result LorawanDevice::isValid()
     }
 
     return Lorawan_result::Success;
-}
-
-LorawanDevice::LorawanDevice(lorawanVersion ver)
-{
-    version = ver;
 }

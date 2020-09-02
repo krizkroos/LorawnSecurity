@@ -23,11 +23,6 @@ void SendController::setIP(const Tins::IP &value)
     packetIP = value;
 }
 
-void SendController::setMagicFour(const bytes &value)
-{
-    magicFour = value;
-}
-
 void SendController::setDstPort(const uint16_t &value)
 {
     dstPort = value;
@@ -36,11 +31,6 @@ void SendController::setDstPort(const uint16_t &value)
 void SendController::setSrcPort(const uint16_t &value)
 {
     srcPort = value;
-}
-
-void SendController::setEui64(const bytes &value)
-{
-    eui64 = value;
 }
 
 

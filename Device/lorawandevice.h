@@ -36,11 +36,10 @@ protected:
     uint16_t srcPort;
 public:
     LorawanDevice() = default;
-    Lorawan_result isValid();
     LorawanDevice(lorawanVersion ver);
-    bytes getDevEUI() const;
+    Lorawan_result isValid();
+
     void setDevEUI(const bytes &value);
-    bytes getAppEUI() const;
     void setAppEUI(const bytes &value);
     bytes getEui64() const;
     void setEui64(const bytes &value);
