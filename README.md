@@ -1,6 +1,6 @@
 # LoRaWAN Security
 
-This repository is used for testing possible vector attacks for [LoRaWAN](https://lora-alliance.org/about-lorawan) protocol which is a popular choice for communication between Internet of Things devices.
+This repository is used for testing (**and testing only**) possible vector attacks for [LoRaWAN](https://lora-alliance.org/about-lorawan) protocol which is a popular choice for communication between Internet of Things devices.
 
 Performed attacks are based on packets that are collected from the interface of LoRaWAN gateway. The are intercepted on UDP port. In the lab the test was performed directly on the gateway but it can be launched in the same LAN network as the gateway. 
 
@@ -70,3 +70,4 @@ To perform f.e. DoS test with JoinRequest packet, all you need to do, is to defi
         std::cout << "testing DoS of JoinRequest packet failed" <<std::endl;
     }
 ```
+You can of course use more deeper function and build your own tests.
